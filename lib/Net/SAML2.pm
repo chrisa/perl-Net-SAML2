@@ -13,6 +13,59 @@ Net::SAML2 - SAML bindings and protocol implementation
 
 =head1 SYNOPSIS
 
+  # generate a redirect off to the IdP:
+
+        my $idp = Net::SAML2::IdP->new($IDP);
+        my $sso_url = $idp->sso_url('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect');
+        
+        my $authnreq = Net::SAML2::Protocol::AuthnRequest->new(
+                issuer      => 'http://localhost:3000/metadata.xml',
+                destination => $sso_url,
+        )->as_xml;
+
+        my $redirect = Net::SAML2::Binding::Redirect->new(
+                key => 'sign-nopw-cert.pem',
+                url => $sso_url,
+        );
+
+        my $url = $redirect->sign_request($authnreq);
+
+  # handle the POST back from the IdP, via the browser:
+
+        my $post = Net::SAML2::Binding::POST->new;
+        my $ret = $post->handle_response(
+                $saml_response
+        );
+        
+        if ($ret) {
+                my $assertion = Net::SAML2::Protocol::Assertion->new(
+                        xml => decode_base64($saml_response)
+                );
+
+                # ...
+        }
+
+=head1 DESCRIPTION
+
+Support for the Web Browser SSO profile of SAML2. 
+
+This is a very early release, but one which will correctly perform the
+SSO process.
+
+=head1 MAJOR CAVEATS
+
+=over
+
+=item SP-side protocol only
+
+=item No verification of the signer of received Assertions
+
+=item Limited handling of protocol / network errors
+
+=item Requires XML metadata from the IdP
+
+=back
+
 =cut
 
 # entities
@@ -41,7 +94,7 @@ The following copyright notice applies to all the files provided in
 this distribution, including binary files, unless explicitly noted
 otherwise.
 
-Copyright 2010 Venda Ltd
+Copyright 2010 Venda Ltd.
 
 =head1 LICENCE
 
