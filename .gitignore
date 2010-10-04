@@ -1,0 +1,10 @@
+*~
+#*
+.#*
+Makefile
+pm_to_blib
+META.yml
+blib
+inc
+*.tar.gz
+MANIFEST
