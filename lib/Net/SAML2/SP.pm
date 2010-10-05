@@ -18,6 +18,31 @@ sub new {
         return $self;
 }
 
+sub authn_request {
+	my ($self, $destination) = @_;
+	
+	my $authnreq = Net::SAML2::Protocol::AuthnRequest->new(
+		issueinstant => DateTime->now,
+		issuer       => $self->{id},
+		destination  => $destination,
+	);
+	
+	return $authnreq;
+}
+
+sub logout_request {
+	my ($self, $destination, $nameid, $session) = @_;
+
+	my $logout_req = Net::SAML2::Protocol::LogoutRequest->new(
+                issuer      => $self->{id},
+                destination => $destination,
+                nameid      => $nameid,
+                session     => $session,
+        );
+
+	return $logout_req;
+}
+
 sub metadata {
         my ($self) = @_;
 
