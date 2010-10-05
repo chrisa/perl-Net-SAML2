@@ -14,4 +14,9 @@ requires 'MIME::Base64';
 requires 'LWP::UserAgent';
 requires 'XML::XPath';
 
+resources
+     license     => "http://dev.perl.org/licenses",
+     bugtracker  => "http://rt.cpan.org/NoAuth/Bugs.html?Dist=Net-SAML2",
+     repository  => "http://github.com/chrisa/perl-Net-SAML2";
+
 WriteAll;
