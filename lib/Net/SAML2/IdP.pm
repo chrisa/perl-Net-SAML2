@@ -6,9 +6,8 @@ use HTTP::Request::Common;
 use LWP::UserAgent;
 use XML::XPath;
 
-sub new {
+sub new_from_url {
         my ($class, $url) = @_;
-        my $self = bless {}, $class;
         
         my $req = GET $url;
         my $ua = LWP::UserAgent->new;
@@ -16,6 +15,13 @@ sub new {
         my $res = $ua->request($req);
         die "no metadata" unless $res->is_success;
         my $xml = $res->content;
+
+	return $class->new($xml);
+}
+
+sub new {
+	my ($class, $xml) = @_;
+        my $self = bless {}, $class;
 
         my $xpath = XML::XPath->new( xml => $xml );
         $xpath->set_namespace('md', 'urn:oasis:names:tc:SAML:2.0:metadata');
