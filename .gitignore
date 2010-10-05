@@ -8,3 +8,5 @@ blib
 inc
 *.tar.gz
 MANIFEST
+MANIFEST.bak
+Makefile.old
