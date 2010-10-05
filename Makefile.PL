@@ -1,4 +1,12 @@
-use inc::Module::Install;
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use inc::Module::Install 0.91;
+use Module::Install::AuthorRequires;
+use Module::Install::AuthorTests;
+use Module::Install::ReadmeFromPod;
 
 name 'Net-SAML2';
 all_from 'lib/Net/SAML2.pm';
@@ -13,10 +21,19 @@ requires 'URI';
 requires 'MIME::Base64';
 requires 'LWP::UserAgent';
 requires 'XML::XPath';
+requires 'DateTime::Format::XSD';
+
+author_requires 'Test::NoTabs';
+author_requires 'Test::Pod' => '1.14';
+author_requires 'Test::Pod::Coverage' => '1.04';
+
+test_requires 'Test::More' => '0.88';
 
 resources
      license     => "http://dev.perl.org/licenses",
      bugtracker  => "http://rt.cpan.org/NoAuth/Bugs.html?Dist=Net-SAML2",
      repository  => "http://github.com/chrisa/perl-Net-SAML2";
+
+author_tests 't/author';
 
 WriteAll;
