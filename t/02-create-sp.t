@@ -2,9 +2,9 @@ use Test::More;
 use Net::SAML2;
 
 my $sp = Net::SAML2::SP->new(
-	id   => 'http://localhost:3000',
-	url  => 'http://localhost:3000',
-	cert => 't/sign-nopw-cert.pem',
+        id   => 'http://localhost:3000',
+        url  => 'http://localhost:3000',
+        cert => 't/sign-nopw-cert.pem',
 );
 ok($sp);
 ok($sp->metadata);

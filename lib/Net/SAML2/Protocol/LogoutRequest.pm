@@ -2,6 +2,34 @@ package Net::SAML2::Protocol::LogoutRequest;
 use strict;
 use warnings;
 
+=head1 NAME
+
+Net::SAML2::Protocol::LogoutRequest - the SAML2 LogoutRequest object
+
+=head1 SYNOPSIS
+
+  my $logout_req = Net::SAML2::Protocol::LogoutRequest->new(
+    issuer      => $issuer,
+    destination => $destination,
+    nameid      => $nameid,
+    session     => $session,
+  );
+
+=head1 METHODS
+
+=head2 new( ... )
+
+Constructor. Returns an instance of the LogoutRequest object.
+
+Arguments:
+
+ * session - the session to log out
+ * nameid - the NameID of the user to log out
+ * issuer - the SP's identity URI
+ * destination -  the IdP's identity URI
+
+=cut
+
 sub new { 
         my ($class, %args) = @_;
         my $self = bless {}, $class;
@@ -13,6 +41,12 @@ sub new {
 
         return $self;
 }
+
+=head2 as_xml()
+
+Returns the LogoutRequest as XML.
+
+=cut
 
 sub as_xml {
         my ($self) = @_;

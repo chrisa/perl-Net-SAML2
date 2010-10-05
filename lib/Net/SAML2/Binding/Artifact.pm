@@ -2,9 +2,42 @@ package Net::SAML2::Binding::Artifact;
 use strict;
 use warnings;
 
+=head1 NAME
+
+Net::SAML2::Binding::Artifact - SOAP Artifact binding for SAML2
+
+=head1 SYNOPSIS
+
+  my $resolver = Net::SAML2::Binding::Artifact->new(
+    url    => $art_url,
+    key    => 'sign-private.pem',
+    cert   => 'sign-certonly.pem',
+    issuer => 'http://localhost:3000',
+  );
+
+  my $response = $resolver->resolve(params->{SAMLart});
+
+=head1 METHODS
+
+=cut
+
 use XML::Sig;
 use LWP::UserAgent;
 use HTTP::Request::Common;
+
+=head2 new( ... )
+
+Constructor. Returns an instance of the Artifact binding configured
+for the given SP issuer and IdP resolver service url. 
+
+Arguments:
+
+ * url - the resolver service URL
+ * key - path to the signing key
+ * cert - path to the signing certificate
+ * issuer - the issuing SP's identity URI
+
+=cut
 
 sub new {
         my ($class, %args) = @_;
@@ -17,6 +50,14 @@ sub new {
 
         return $self;
 }
+
+=head2 resolve($artifact)
+
+Resolve the given artifact, which should be an opaque SAML2 artifact id. 
+
+Returns the Artifact, or dies if there was an error.
+
+=cut
 
 sub resolve {
         my ($self, $artifact) = @_;

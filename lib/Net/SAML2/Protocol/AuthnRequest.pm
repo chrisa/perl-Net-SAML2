@@ -1,7 +1,36 @@
 package Net::SAML2::Protocol::AuthnRequest;
 use strict;
 use warnings;
+
+=head1 NAME
+
+Net::SAML2::Protocol::AuthnRequest - SAML2 AuthnRequest object
+
+=head1 SYNOPSIS
+
+  my $authnreq = Net::SAML2::Protocol::AuthnRequest->new(
+    issueinstant => DateTime->now,
+    issuer       => $self->{id},
+    destination  => $destination,
+  );
+
+=head1 METHODS
+
+=cut
+
 use DateTime::Format::XSD;
+
+=head2 new( ... )
+
+Constructor. Creates an instance of the AuthnRequest object. 
+
+Arguments:
+
+ * issueinstant - a DateTime for "now"
+ * issuer - the SP's identity URI
+ * destination - the IdP's identity URI
+
+=cut
 
 sub new { 
         my ($class, %args) = @_;
@@ -13,6 +42,12 @@ sub new {
 
         return $self;
 }
+
+=head2 as_xml()
+
+Returns the AuthnRequest as XML.
+
+=cut
 
 sub as_xml {
         my ($self) = @_;
