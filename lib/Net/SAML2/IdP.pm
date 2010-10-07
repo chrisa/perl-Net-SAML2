@@ -53,6 +53,15 @@ sub new {
 
         my $xpath = XML::XPath->new( xml => $xml );
         $xpath->set_namespace('md', 'urn:oasis:names:tc:SAML:2.0:metadata');
+	$xpath->set_namespace('ds', 'http://www.w3.org/2000/09/xmldsig#');
+
+	my ($desc) = $xpath->findnodes('//md:EntityDescriptor');
+	if (defined $desc) {
+		$self->{entityID} = $desc->getAttribute('entityID');
+	}
+	else {
+		die "can't find entityID in metadata";
+	}
 
         my @ssos = $xpath->findnodes('//md:EntityDescriptor/md:IDPSSODescriptor/md:SingleSignOnService');
         for my $sso (@ssos) {
@@ -71,7 +80,15 @@ sub new {
                 my $binding = $art->getAttribute('Binding');
                 $self->{Art}->{$binding} = $art->getAttribute('Location');
         }
-        
+
+	my @keys = $xpath->findnodes('//md:EntityDescriptor/md:IDPSSODescriptor/md:KeyDescriptor');
+	for my $key (@keys) {
+		my $use = $key->getAttribute('use');
+		my ($text) = $key->findvalue('ds:KeyInfo/ds:X509Data/ds:X509Certificate') =~ /^\s+(.+?)\s+$/s;
+		$self->{Cert}->{$use} = 
+		     sprintf("-----BEGIN CERTIFICATE-----\n%s\n-----END CERTIFICATE-----\n", $text);
+	}
+
         return $self;
 }
 
@@ -109,6 +126,28 @@ binding. Binding name should be the full URI.
 sub art_url {
         my ($self, $binding) = @_;
         return $self->{Art}->{$binding};
+}
+
+=head2 cert($use)
+
+Returns the IdP's certificate for the given use (e.g. 'signing').
+
+=cut
+
+sub cert {
+	my ($self, $use) = @_;
+	return $self->{Cert}->{$use};
+}
+
+=head2 entityID()
+
+Returns the IdP's entityID, for use as the Destination in requests.
+
+=cut
+
+sub entityID {
+	my ($self) = @_;
+	return $self->{entityID};
 }
 
 1;

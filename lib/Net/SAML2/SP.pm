@@ -42,7 +42,7 @@ sub new {
         my $cert = Crypt::OpenSSL::X509->new_from_file($args{cert});
         $self->{cert} = $cert->as_string;
         $self->{cert} =~ s/-----[^-]*-----//gm;
-        
+
         return $self;
 }
 
@@ -85,6 +85,27 @@ sub logout_request {
         );
 
 	return $logout_req;
+}
+
+=head2 artifact_request($destination, $artifact)
+
+Returns an ArtifactResolve request object created by this SP, intended
+for the given destination, which should be the identity URI of the
+IdP.
+
+=cut
+
+sub artifact_request {
+	my ($self, $destination, $artifact) = @_;
+	
+	my $artifact_request = Net::SAML2::Protocol::ArtifactResolve->new(
+		issuer	     => $self->{id},
+		destination  => $destination,
+		artifact     => $artifact,
+		issueinstant => DateTime->now,
+	);
+	
+	return $artifact_request;
 }
 
 =head2 metadata

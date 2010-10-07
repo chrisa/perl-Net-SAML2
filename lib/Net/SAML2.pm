@@ -74,13 +74,14 @@ use Net::SAML2::SP;
 
 # bindings
 use Net::SAML2::Binding::Redirect;
-use Net::SAML2::Binding::Artifact;
 use Net::SAML2::Binding::POST;
+use Net::SAML2::Binding::SOAP;
 
 # protocol
 use Net::SAML2::Protocol::AuthnRequest;
 use Net::SAML2::Protocol::LogoutRequest;
 use Net::SAML2::Protocol::Assertion;
+use Net::SAML2::Protocol::ArtifactResolve;
 
 =pod
 
