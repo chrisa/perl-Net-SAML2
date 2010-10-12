@@ -1,0 +1,15 @@
+[18057] debug @0.000234> [hit #1] trying to match `/' against /^\/$/ in /opt/local/lib/perl5/site_perl/5.10.1/Dancer/Route.pm l. 73
+[18064] debug @0.000260> [hit #1] trying to match `/' against /^\/$/ in /opt/local/lib/perl5/site_perl/5.10.1/Dancer/Route.pm l. 73
+[18067] debug @0.000277> [hit #1] trying to match `/' against /^\/$/ in /opt/local/lib/perl5/site_perl/5.10.1/Dancer/Route.pm l. 73
+[18070] debug @0.001417> [hit #1] trying to match `/' against /^\/$/ in /opt/local/lib/perl5/site_perl/5.10.1/Dancer/Route.pm l. 73
+[18070] debug @0.000233> [hit #2] trying to match `/' against /^\/$/ in /opt/local/lib/perl5/site_perl/5.10.1/Dancer/Route.pm l. 73
+[18403] debug @0.000292> [hit #1] trying to match `/' against /^\/$/ in /opt/local/lib/perl5/site_perl/5.10.1/Dancer/Route.pm l. 73
+[18403] debug @0.000294> [hit #2] trying to match `/' against /^\/$/ in /opt/local/lib/perl5/site_perl/5.10.1/Dancer/Route.pm l. 73
+[18403] debug @0.000251> [hit #3] trying to match `/' against /^\/$/ in /opt/local/lib/perl5/site_perl/5.10.1/Dancer/Route.pm l. 73
+[18407] debug @0.000292> [hit #1] trying to match `/' against /^\/$/ in /opt/local/lib/perl5/site_perl/5.10.1/Dancer/Route.pm l. 73
+[18407] debug @0.002805> [hit #2] trying to match `/metadata.xml' against /^\/$/ in /opt/local/lib/perl5/site_perl/5.10.1/Dancer/Route.pm l. 73
+[18407] debug @0.003017> [hit #2] trying to match `/metadata.xml' against /^\/metadata\.xml$/ in /opt/local/lib/perl5/site_perl/5.10.1/Dancer/Route.pm l. 73
+[18407] debug @0.003896> [hit #3] trying to match `/metadata.xml' against /^\/$/ in /opt/local/lib/perl5/site_perl/5.10.1/Dancer/Route.pm l. 73
+[18407] debug @0.005244> [hit #3] trying to match `/metadata.xml' against /^\/metadata\.xml$/ in /opt/local/lib/perl5/site_perl/5.10.1/Dancer/Route.pm l. 73
+[18415] debug @0.000261> [hit #1] trying to match `/metadata.xml' against /^\/$/ in /opt/local/lib/perl5/site_perl/5.10.1/Dancer/Route.pm l. 73
+[18415] debug @0.001664> [hit #1] trying to match `/metadata.xml' against /^\/metadata\.xml$/ in /opt/local/lib/perl5/site_perl/5.10.1/Dancer/Route.pm l. 73
