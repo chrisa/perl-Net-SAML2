@@ -93,8 +93,6 @@ SOAP
         my $ua = LWP::UserAgent->new;
         my $res = $ua->request($req);
 
-	printf STDERR "res:\n%s\n", $res->content;
-
         my $sig_verify = XML::Sig->new({ x509 => 1, cert_text => $self->{idp_cert} });
         $ret = $sig_verify->verify($res->content);
         die "bad SOAP response" unless $ret;
