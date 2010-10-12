@@ -9,8 +9,14 @@ Major dependencies:
  * XML::XPath
  * Crypt::OpenSSL::RSA
  * Crypt::OpenSSL::X509
+ * Crypt::OpenSSL::VerifyX509[2]
 
 [1] - at this time you will need the updated version of XML::Sig,
       available here (changes have been submitted upstream):
       
         http://github.com/chrisa/perl-XML-Sig
+
+[2] - at this time you will need the development version available
+      from CPAN, or from here:
+
+        http://github.com/chrisa/perl-Crypt-OpenSSL-VerifyX509
