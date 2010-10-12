@@ -58,4 +58,7 @@ ok($idp->sso_url($redirect_uri));
 ok($idp->slo_url($redirect_uri));
 ok($idp->art_url($soap_uri));
 
+ok($idp->cert('signing'));
+ok($idp->entityID eq 'http://sso.dev.venda.com/opensso');
+
 done_testing;

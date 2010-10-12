@@ -14,6 +14,7 @@ all_from 'lib/Net/SAML2.pm';
 requires 'XML::Sig';
 requires 'Crypt::OpenSSL::RSA';
 requires 'Crypt::OpenSSL::X509';
+requires 'Crypt::OpenSSL::VerifyX509';
 requires 'IO::Compress::RawDeflate';
 requires 'IO::Uncompress::RawInflate';
 requires 'File::Slurp';
