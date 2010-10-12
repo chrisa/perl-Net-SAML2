@@ -34,8 +34,10 @@ sub new {
 
         $self->{attributes} = {};
         for my $node ($xpath->findnodes('//saml:Assertion/saml:AttributeStatement/saml:Attribute')) {
-                $self->{attributes}->{$node->getAttribute('Name')} = 
-                     $node->findvalue('saml:AttributeValue')->value;
+		my @values = $node->findnodes('saml:AttributeValue');
+                $self->{attributes}->{$node->getAttribute('Name')} = [
+			map { $_->string_value } @values
+		];
         }
         
         $self->{session} = $xpath->findvalue('//saml:AuthnStatement/@SessionIndex')->value;
@@ -86,7 +88,7 @@ Returns the CN attribute, if provided.
 
 sub name {
         my ($self) = @_;
-        return $self->{attributes}->{CN};
+        return $self->{attributes}->{CN}->[0];
 }
 
 1;
