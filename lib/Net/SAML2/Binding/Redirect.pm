@@ -31,6 +31,7 @@ use IO::Uncompress::RawInflate qw/ rawinflate /;
 use URI;
 use URI::QueryParam;
 use Crypt::OpenSSL::RSA;
+use Crypt::OpenSSL::X509;
 use File::Slurp qw/ read_file /;
 
 =head2 new( ... )
@@ -88,7 +89,7 @@ sub sign_request {
         return $url;
 }
 
-=head2 handle_response($response)
+=head2 handle_request($url)
 
 Decode a Redirect binding URL. 
 
@@ -96,16 +97,31 @@ Should also verify the signature on the response.
 
 =cut
 
-sub handle_response {
-        my ($self, $response) = @_;
-        my $deflated = decode_base64($response);
+sub handle_request {
+        my ($self, $url) = @_;
+	my $u = URI->new($url);
 
-        my $output = '';
-        rawinflate \$deflated => \$output;
+        # verify the response
+	my $sigalg = $u->query_param('SigAlg');
+	die "can't verify '$sigalg' signatures"
+	     unless $sigalg eq 'http://www.w3.org/2000/09/xmldsig#rsa-sha1';
+
+        my $cert = Crypt::OpenSSL::X509->new_from_file($self->{key});
+        my $rsa_pub = Crypt::OpenSSL::RSA->new_public_key($cert->pubkey);
+	
+	my $sig = decode_base64($u->query_param_delete('Signature'));
+	my $signed = $u->query;
+	die "bad sig" unless $rsa_pub->verify($signed, $sig);
+
+	# unpack the SAML request
+        my $deflated = decode_base64($u->query_param('SAMLRequest'));
+        my $request = '';
+        rawinflate \$deflated => \$request;
         
-        # Should verify the response
+	# unpack the relaystate
+	my $relaystate = $u->query_param('RelayState');
 
-        return $output;
+        return ($request, $relaystate);
 }
 
 1;

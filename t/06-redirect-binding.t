@@ -1,0 +1,45 @@
+use Test::More;
+use strict;
+use warnings;
+use Net::SAML2;
+use MIME::Base64;
+use Data::Dumper;
+use File::Slurp;
+use LWP::UserAgent;
+
+my $sp = Net::SAML2::SP->new(
+        id               => 'http://localhost:3000',
+        url              => 'http://localhost:3000',
+        cert             => 't/sign-nopw-cert.pem',
+        cacert           => 't/cacert.pem',
+        org_name         => 'Test',
+        org_display_name => 'Test',
+        org_contact      => 'test@example.com',
+);
+ok($sp);
+
+my $metadata = read_file('t/idp-metadata.xml');
+ok($metadata);
+my $idp = Net::SAML2::IdP->new($metadata);
+ok($idp);
+
+my $sso_url = $idp->sso_url('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect');
+ok($sso_url);
+my $authnreq = $sp->authn_request($sso_url)->as_xml;
+ok($authnreq);
+
+my $redirect = $sp->redirect_binding($sso_url);
+ok($redirect);
+
+my $location = $redirect->sign_request(
+        $authnreq,
+        'http://return/url',
+);
+ok($location);
+
+my ($request, $relaystate) = $redirect->handle_request($location);
+ok($request);
+ok($relaystate);
+ok($relaystate eq 'http://return/url');
+
+done_testing;
