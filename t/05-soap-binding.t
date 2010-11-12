@@ -1,0 +1,55 @@
+use Test::More;
+use strict;
+use warnings;
+use Net::SAML2;
+use MIME::Base64;
+use Data::Dumper;
+use File::Slurp;
+use LWP::UserAgent;
+
+my $sp = Net::SAML2::SP->new(
+        id               => 'http://localhost:3000',
+        url              => 'http://localhost:3000',
+        cert             => 't/sign-nopw-cert.pem',
+        cacert           => 't/cacert.pem',
+        org_name         => 'Test',
+        org_display_name => 'Test',
+        org_contact      => 'test@example.com',
+);
+ok($sp);
+
+my $metadata = read_file('t/idp-metadata.xml');
+ok($metadata);
+my $idp = Net::SAML2::IdP->new($metadata);
+ok($idp);
+my $slo_url = $idp->slo_url('urn:oasis:names:tc:SAML:2.0:bindings:SOAP');
+ok($slo_url);
+my $idp_cert = $idp->cert('signing');
+ok($idp_cert);
+
+my $nameid = 'user-to-log-out';
+my $session = 'session-to-log-out';
+
+my $request = $sp->logout_request(
+        $idp->entityID, $nameid, $session,
+)->as_xml;
+ok($request);
+
+my $ua = LWP::UserAgent->new; # not used
+my $soap = $sp->soap_binding($ua, $slo_url, $idp_cert);
+ok($soap);
+
+my $soap_req = $soap->create_request($request);
+ok($soap_req);
+
+my ($subject, $xml) = $soap->handle_request($soap_req);
+ok($subject);
+ok($xml);
+
+my $soaped_request = Net::SAML2::Protocol::LogoutRequest->new_from_xml(
+        xml => $xml
+);
+ok($soaped_request);
+ok($request eq $soaped_request->as_xml);
+
+done_testing;

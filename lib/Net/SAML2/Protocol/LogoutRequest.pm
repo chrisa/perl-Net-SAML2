@@ -57,10 +57,10 @@ sub new_from_xml {
 	$xpath->set_namespace('samlp', 'urn:oasis:names:tc:SAML:2.0:protocol');
 
 	$self->{id}          = $xpath->findvalue('/samlp:LogoutRequest/@ID')->value;
-        $self->{destination} = $xpath->findvalue('/samlp:LogoutRequest/@Destination')->value;
         $self->{session}     = $xpath->findvalue('/samlp:LogoutRequest/samlp:SessionIndex')->value;
         $self->{issuer}	     = $xpath->findvalue('/samlp:LogoutRequest/saml:Issuer')->value;
         $self->{nameid}	     = $xpath->findvalue('/samlp:LogoutRequest/saml:NameID')->value;
+	$self->{destination} = $xpath->findvalue('/samlp:LogoutRequest/saml:NameID/@NameQualifier')->value;
 
 	return $self;
 }

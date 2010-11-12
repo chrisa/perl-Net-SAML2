@@ -81,6 +81,6 @@ my $assertion = Net::SAML2::Protocol::Assertion->new(
         xml => $xml,
 );
 ok($assertion);
-diag Dumper { assertion => $assertion };
+#diag Dumper { assertion => $assertion };
 
 done_testing;

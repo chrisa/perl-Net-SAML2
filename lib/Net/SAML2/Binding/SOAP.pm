@@ -54,16 +54,40 @@ sub new {
         return $self;
 }
 
-=head2 request($req)
+=head2 request($message)
 
-Submit the request to the IdP's service.
+Submit the message to the IdP's service.
 
 Returns the Response, or dies if there was an error.
 
 =cut
 
 sub request {
-        my ($self, $request) = @_;
+        my ($self, $message) = @_;
+	my $request = $self->create_request($message);
+
+        my $soap_action = 'http://www.oasis-open.org/committees/security';
+
+        my $req = POST $self->{url};
+        $req->header('SOAPAction' => $soap_action);
+        $req->header('Content-Type' => 'text/xml');
+        $req->header('Content-Length' => length $request);
+        $req->content($request);
+
+        my $ua = $self->{ua} || LWP::UserAgent->new;
+        my $res = $ua->request($req);
+
+	return $self->handle_response($res->content);
+}
+
+=head2 create_request( $message )
+
+Signs the given message, and returns it as a SOAP request. 
+
+=cut
+
+sub create_request {
+	my ($self, $message) = @_;
 
 	# sign the request
         my $sig = XML::Sig->new({ 
@@ -71,32 +95,20 @@ sub request {
 		key  => $self->{key},
 		cert => $self->{cert}
 	});
-        my $signed_req = $sig->sign($request);
+        my $signed_req = $sig->sign($message);
 	
 	# test verify
         my $ret = $sig->verify($signed_req);
         die "failed to sign" unless $ret;
 
-        my $soap_req = <<"SOAP";
+        my $request = <<"SOAP";
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
 <SOAP-ENV:Body>
 $signed_req
 </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>
 SOAP
-
-        my $soap_action = 'http://www.oasis-open.org/committees/security';
-
-        my $req = POST $self->{url};
-        $req->header('SOAPAction' => $soap_action);
-        $req->header('Content-Type' => 'text/xml');
-        $req->header('Content-Length' => length $soap_req);
-        $req->content($soap_req);
-
-        my $ua = $self->{ua} || LWP::UserAgent->new;
-        my $res = $ua->request($req);
-
-	return $self->handle_response($res->content);
+	return $request;
 }
 
 =head2 handle_response( $response )
@@ -134,7 +146,7 @@ Accepts a string containing the complete SOAP request.
 
 sub handle_request {
 	my ($self, $request) = @_;
-
+	
 	my $parser = XML::XPath->new( xml => $request );
 	$parser->set_namespace('soap-env', 'http://schemas.xmlsoap.org/soap/envelope/');
 	$parser->set_namespace('samlp', 'urn:oasis:names:tc:SAML:2.0:protocol');
@@ -160,7 +172,7 @@ Signs and SOAP-wraps the given message.
 =cut
 
 sub create_response {
-	my ($self, $message) = @_;
+	my ($self, $response) = @_;
 
 	# sign the response
         my $sig = XML::Sig->new({ 
@@ -168,7 +180,7 @@ sub create_response {
 		key  => $self->{key},
 		cert => $self->{cert}
 	});
-        my $signed_res = $sig->sign($message);
+        my $signed_res = $sig->sign($response);
 	
 	# test verify
         my $ret = $sig->verify($signed_res);
