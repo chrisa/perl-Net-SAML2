@@ -1,6 +1,18 @@
 package Saml2Test;
-use Dancer ':syntax';
+use strict;
+use warnings;
 
+=head1 NAME 
+
+Saml2Test - test Dancer app for Net::SAML2
+
+=head1 DESCRIPTION
+
+Demo app to show use of Net::SAML2 as an SP.
+
+=cut
+
+use Dancer ':syntax';
 use Net::SAML2;
 use MIME::Base64 qw/ decode_base64 /;
 

@@ -26,9 +26,14 @@ Constructor. Create an SP object.
 
 Arguments:
 
- * url  - the base for all SP service URLs
- * id   - the SP's identity URI. 
- * cert - path to the signing certificate
+ * url    - the base for all SP service URLs
+ * id     - the SP's identity URI. 
+ * cert   - path to the signing certificate
+ * cacert - path to the CA certificate for verification
+
+ * org_name         - the SP organisation name
+ * org_display_name - the SP organisation display name
+ * org_contact      - an SP contact email address
 
 =cut
 
@@ -36,8 +41,14 @@ sub new {
         my ($class, %args) = @_;
         my $self = bless {}, $class;
 
-        $self->{url} = $args{url};
-	$self->{id}  = $args{id};
+	$self->{cacert_path} = $args{cacert};
+	$self->{cert_path}   = $args{cert};
+	$self->{url}	     = $args{url};
+	$self->{id}	     = $args{id};
+
+	$self->{org_name}         = $args{org_name};
+	$self->{org_display_name} = $args{org_display_name};
+	$self->{org_contact}      = $args{org_contact};
 
         my $cert = Crypt::OpenSSL::X509->new_from_file($args{cert});
         $self->{cert} = $cert->as_string;
@@ -67,7 +78,7 @@ sub authn_request {
 
 =head2 logout_request($destination, $nameid, $session)
 
-Returns an AuthnRequest object created by this SP, intended for the
+Returns a LogoutRequest object created by this SP, intended for the
 given destination, which should be the identity URI of the IdP.
 
 Also requires the nameid and session to be logged out. 
@@ -82,6 +93,29 @@ sub logout_request {
                 destination => $destination,
                 nameid      => $nameid,
                 session     => $session,
+        );
+
+	return $logout_req;
+}
+
+=head2 logout_response($destination, $status, $response_to)
+
+Returns a LogoutResponse object created by this SP, intended for the
+given destination, which should be the identity URI of the IdP.
+
+Also requires the status and the ID of the corresponding
+LogoutRequest.
+
+=cut
+
+sub logout_response {
+	my ($self, $destination, $status, $response_to) = @_;
+
+	my $logout_req = Net::SAML2::Protocol::LogoutResponse->new(
+                issuer      => $self->{id},
+                destination => $destination,
+		status      => $status,
+		response_to => $response_to,
         );
 
 	return $logout_req;
@@ -108,6 +142,63 @@ sub artifact_request {
 	return $artifact_request;
 }
 
+=head2 redirect_binding
+
+Returns a Redirect binding object for this SP, configured against the
+given IDP.
+
+=cut
+
+sub redirect_binding {
+	my ($self, $idp) = @_;
+	
+	my $redirect = Net::SAML2::Binding::Redirect->new(
+		key => $self->{cert_path},
+		url => $idp,
+	);
+	
+	return $redirect;
+}
+
+=head2 soap_binding
+
+Returns a SOAP binding object for this SP, with a destination of the
+given URL and signing certificate.
+
+XXX UA
+
+=cut
+
+sub soap_binding {
+	my ($self, $ua, $idp_url, $idp_cert) = @_;
+
+	my $soap = Net::SAML2::Binding::SOAP->new(
+		ua       => $ua,
+		key	 => $self->{cert_path},
+		cert	 => $self->{cert_path},
+		url	 => $idp_url,
+		idp_cert => $idp_cert,
+	);
+	
+	return $soap;
+}
+
+=head2 post_binding
+
+Returns a POST binding object for this SP.
+
+=cut
+
+sub post_binding {
+	my ($self) = @_;
+	
+        my $post = Net::SAML2::Binding::POST->new(
+		cacert => $self->{cacert_path},
+	);
+	
+	return $post;
+}
+
 =head2 metadata
 
 Returns the metadata XML document for this SP.
@@ -130,20 +221,17 @@ $self->{cert}
         </ds:X509Data>
       </ds:KeyInfo>
     </md:KeyDescriptor>
-    <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="$self->{url}/sls-redirect" ResponseLocation="$self->{url}/sls-redirect-response"/>
-    <md:ManageNameIDService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect" Location="$self->{url}/manage-redirect" ResponseLocation="$self->{url}/manage-redirect-response"/>
-    <md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</md:NameIDFormat>
-    <md:NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:persistent</md:NameIDFormat>
-    <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="$self->{url}/consumer-post" index="2"/>
-    <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact" Location="$self->{url}/consumer-artifact" index="1"/>
+    <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP" Location="$self->{url}/slo-soap"/>
+    <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="$self->{url}/consumer-post" index="1" isDefault="true"/>
   </md:SPSSODescriptor>
   <md:Organization>
-    <md:OrganizationName xml:lang="en">Saml2Test</md:OrganizationName>
-    <md:OrganizationDisplayName xml:lang="en">Saml2Test app</md:OrganizationDisplayName>
+    <md:OrganizationName xml:lang="en">$self->{org_name}</md:OrganizationName>
+    <md:OrganizationDisplayName xml:lang="en">$self->{org_display_name}</md:OrganizationDisplayName>
     <md:OrganizationURL xml:lang="en">$self->{url}/</md:OrganizationURL>
   </md:Organization>
   <md:ContactPerson contactType="other">
-    <md:Company>Saml2Test</md:Company>
+    <md:Company>$self->{org_display_name}</md:Company>
+    <md:EmailAddress>$self->{org_contact}</md:EmailAddress>
   </md:ContactPerson>
 </md:EntityDescriptor>
 METADATA

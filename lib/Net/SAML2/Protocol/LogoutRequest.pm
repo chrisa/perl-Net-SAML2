@@ -42,6 +42,29 @@ sub new {
         return $self;
 }
 
+=head2 new_from_xml
+
+Create a LogoutRequest object from the given XML.
+
+=cut
+
+sub new_from_xml {
+	my ($class, %args) = @_;
+        my $self = bless {}, $class;
+
+        my $xpath = XML::XPath->new( xml => $args{xml} );
+        $xpath->set_namespace('saml', 'urn:oasis:names:tc:SAML:2.0:assertion');
+	$xpath->set_namespace('samlp', 'urn:oasis:names:tc:SAML:2.0:protocol');
+
+	$self->{id}          = $xpath->findvalue('/samlp:LogoutRequest/@ID')->value;
+        $self->{destination} = $xpath->findvalue('/samlp:LogoutRequest/@Destination')->value;
+        $self->{session}     = $xpath->findvalue('/samlp:LogoutRequest/samlp:SessionIndex')->value;
+        $self->{issuer}	     = $xpath->findvalue('/samlp:LogoutRequest/saml:Issuer')->value;
+        $self->{nameid}	     = $xpath->findvalue('/samlp:LogoutRequest/saml:NameID')->value;
+
+	return $self;
+}
+
 =head2 as_xml()
 
 Returns the LogoutRequest as XML.
@@ -66,5 +89,59 @@ EOXML
         return $xml;
 }
 
+=head2 id
+
+Returns the ID of the parsed response.
+
+=cut
+
+sub id { 
+	my ($self) = @_;
+        return $self->{id};
+}
+
+=head2 session
+
+Returns the Session attribute of the parsed response.
+
+=cut
+
+sub session { 
+	my ($self) = @_;
+        return $self->{session};
+}
+
+=head2 nameid
+
+Returns the NameID attribute of the parsed response.
+
+=cut
+
+sub nameid {
+	my ($self) = @_;
+        return $self->{nameid};
+}
+
+=head2 issuer
+
+Returns the Issuer URI  of the parsed response.
+
+=cut
+
+sub issuer {
+	my ($self) = @_;
+        return $self->{issuer};
+}
+
+=head2 destination
+
+Returns the Destination URI of the parsed response.
+
+=cut
+
+sub destination {
+	my ($self) = @_;
+        return $self->{destination};
+}
+
 1;
-        

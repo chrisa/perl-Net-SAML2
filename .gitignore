@@ -10,3 +10,4 @@ inc
 MANIFEST
 MANIFEST.bak
 Makefile.old
+testapp/logs/*

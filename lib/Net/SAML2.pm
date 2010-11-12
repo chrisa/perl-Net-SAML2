@@ -80,6 +80,7 @@ use Net::SAML2::Binding::SOAP;
 # protocol
 use Net::SAML2::Protocol::AuthnRequest;
 use Net::SAML2::Protocol::LogoutRequest;
+use Net::SAML2::Protocol::LogoutResponse;;
 use Net::SAML2::Protocol::Assertion;
 use Net::SAML2::Protocol::ArtifactResolve;
 

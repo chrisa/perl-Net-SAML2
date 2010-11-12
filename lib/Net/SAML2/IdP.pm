@@ -81,6 +81,7 @@ sub new {
                 $self->{Art}->{$binding} = $art->getAttribute('Location');
         }
 
+	# XXX this cert should get verified by our CA before we trust it
 	my @keys = $xpath->findnodes('//md:EntityDescriptor/md:IDPSSODescriptor/md:KeyDescriptor');
 	for my $key (@keys) {
 		my $use = $key->getAttribute('use');
