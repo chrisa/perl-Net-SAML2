@@ -64,7 +64,7 @@ Returns the Response, or dies if there was an error.
 
 sub request {
         my ($self, $message) = @_;
-	my $request = $self->create_request($message);
+	my $request = $self->create_soap_envelope($message);
 
         my $soap_action = 'http://www.oasis-open.org/committees/security';
 
@@ -78,37 +78,6 @@ sub request {
         my $res = $ua->request($req);
 
 	return $self->handle_response($res->content);
-}
-
-=head2 create_request( $message )
-
-Signs the given message, and returns it as a SOAP request. 
-
-=cut
-
-sub create_request {
-	my ($self, $message) = @_;
-
-	# sign the request
-        my $sig = XML::Sig->new({ 
-		x509 => 1,
-		key  => $self->{key},
-		cert => $self->{cert}
-	});
-        my $signed_req = $sig->sign($message);
-	
-	# test verify
-        my $ret = $sig->verify($signed_req);
-        die "failed to sign" unless $ret;
-
-        my $request = <<"SOAP";
-<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
-<SOAP-ENV:Body>
-$signed_req
-</SOAP-ENV:Body>
-</SOAP-ENV:Envelope>
-SOAP
-	return $request;
 }
 
 =head2 handle_response( $response )
@@ -165,35 +134,35 @@ sub handle_request {
 	return;
 }
 
-=head2 create_response( $message )
+=head2 create_soap_envelope($message)
 
 Signs and SOAP-wraps the given message.
 
 =cut
 
-sub create_response {
-	my ($self, $response) = @_;
+sub create_soap_envelope {
+	my ($self, $message) = @_;
 
-	# sign the response
+	# sign the message
         my $sig = XML::Sig->new({ 
 		x509 => 1,
 		key  => $self->{key},
 		cert => $self->{cert}
 	});
-        my $signed_res = $sig->sign($response);
+        my $signed_message = $sig->sign($message);
 	
 	# test verify
-        my $ret = $sig->verify($signed_res);
+        my $ret = $sig->verify($signed_message);
         die "failed to sign" unless $ret;
 
-        my $soap_res = <<"SOAP";
+        my $soap = <<"SOAP";
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
 <SOAP-ENV:Body>
-$signed_res
+$signed_message
 </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>
 SOAP
-	return $soap_res;
+	return $soap;
 }
 
 1;

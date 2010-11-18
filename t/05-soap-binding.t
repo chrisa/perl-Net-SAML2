@@ -39,7 +39,7 @@ my $ua = LWP::UserAgent->new; # not used
 my $soap = $sp->soap_binding($ua, $slo_url, $idp_cert);
 ok($soap);
 
-my $soap_req = $soap->create_request($request);
+my $soap_req = $soap->create_soap_envelope($request);
 ok($soap_req);
 
 my ($subject, $xml) = $soap->handle_request($soap_req);
