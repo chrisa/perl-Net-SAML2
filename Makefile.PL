@@ -14,6 +14,7 @@ all_from 'lib/Net/SAML2.pm';
 requires 'XML::Sig';
 requires 'Crypt::OpenSSL::RSA';
 requires 'Crypt::OpenSSL::X509';
+requires 'Crypt::OpenSSL::Random';
 requires 'Crypt::OpenSSL::VerifyX509';
 requires 'IO::Compress::RawDeflate';
 requires 'IO::Uncompress::RawInflate';
@@ -23,12 +24,17 @@ requires 'MIME::Base64';
 requires 'LWP::UserAgent';
 requires 'XML::XPath';
 requires 'DateTime::Format::XSD';
+requires 'Moose';
+requires 'MooseX::Types';
+requires 'MooseX::Types::URI';
 
 author_requires 'Test::NoTabs';
 author_requires 'Test::Pod' => '1.14';
 author_requires 'Test::Pod::Coverage' => '1.04';
 
 test_requires 'Test::More' => '0.88';
+test_requires 'Dancer' => '1.2000';
+test_requires 'WWW::Mechanize' => '1.66';
 
 resources
      license     => "http://dev.perl.org/licenses",

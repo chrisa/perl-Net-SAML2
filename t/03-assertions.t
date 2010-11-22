@@ -60,7 +60,7 @@ my $xml = <<XML;
 </samlp:Response>
 XML
 
-my $assertion = Net::SAML2::Protocol::Assertion->new(
+my $assertion = Net::SAML2::Protocol::Assertion->new_from_xml(
         xml => $xml
 );
 ok($assertion);

@@ -1,5 +1,7 @@
-use Test::More tests => 1;
+use Test::More;
 use strict;
 use warnings;
 
 use_ok 'Saml2Test';
+
+done_testing;

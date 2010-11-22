@@ -1,6 +1,9 @@
 package Net::SAML2::Protocol::Assertion;
-use strict;
-use warnings;
+use Moose;
+use MooseX::Types::Moose qw/ Str HashRef ArrayRef /;
+
+with 'Net::SAML2::Role::Templater',
+     'Net::SAML2::Role::ProtocolMessage';
 
 =head1 NAME
 
@@ -8,76 +11,48 @@ Net::SAML2::Protocol::Assertion - SAML2 assertion object
 
 =head1 SYNOPSIS
 
-  my $assertion = Net::SAML2::Protocol::Assertion->new(
+  my $assertion = Net::SAML2::Protocol::Assertion->new_from_xml(
     xml => decode_base64($SAMLResponse)
   );
+
+=cut
+
+has 'attributes' => (isa => HashRef[ArrayRef], is => 'ro', required => 1);
+has 'session'    => (isa => Str, is => 'ro', required => 1);
+has 'nameid'     => (isa => Str, is => 'ro', required => 1);
 
 =head1 METHODS
 
 =cut
 
-use XML::XPath;
-
-=head2 new( ... )
+=head2 new_from_xml( ... )
 
 Constructor. Creates an instance of the Assertion object, parsing the
 given XML to find the attributes, session and nameid. 
 
 =cut
 
-sub new { 
+sub new_from_xml { 
         my ($class, %args) = @_;
-        my $self = bless {}, $class;
 
         my $xpath = XML::XPath->new( xml => $args{xml} );
         $xpath->set_namespace('saml', 'urn:oasis:names:tc:SAML:2.0:assertion');
 
-        $self->{attributes} = {};
+	my $attributes = {};
         for my $node ($xpath->findnodes('//saml:Assertion/saml:AttributeStatement/saml:Attribute')) {
 		my @values = $node->findnodes('saml:AttributeValue');
-                $self->{attributes}->{$node->getAttribute('Name')} = [
+                $attributes->{$node->getAttribute('Name')} = [
 			map { $_->string_value } @values
 		];
         }
         
-        $self->{session} = $xpath->findvalue('//saml:AuthnStatement/@SessionIndex')->value;
-        $self->{nameid}  = $xpath->findvalue('//saml:Subject/saml:NameID')->value;
-
+        my $self = $class->new(
+                attributes => $attributes,
+                session    => $xpath->findvalue('//saml:AuthnStatement/@SessionIndex')->value,
+                nameid     => $xpath->findvalue('//saml:Subject/saml:NameID')->value,
+        );
+	
         return $self;
-}
-
-=head2 attributes()
-
-Returns a hash of SAML attributes found in the assertion.
-
-=cut
-
-sub attributes {
-        my ($self) = @_;
-        return $self->{attributes};
-}
-
-=head2 session()
-
-Returns the SAML session identifier, which may be used in a
-LogoutRequest to terminate this session.
-
-=cut
-
-sub session {
-        my ($self) = @_;
-        return $self->{session};
-}
-
-=head2 nameid()
-
-Returns the nameid in the Assertion.
-
-=cut
-
-sub nameid {
-        my ($self) = @_;
-        return $self->{nameid};
 }
 
 =head2 name
@@ -88,7 +63,7 @@ Returns the CN attribute, if provided.
 
 sub name {
         my ($self) = @_;
-        return $self->{attributes}->{CN}->[0];
+	return $self->attributes->{CN}->[0];
 }
 
 1;

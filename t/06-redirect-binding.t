@@ -20,24 +20,24 @@ ok($sp);
 
 my $metadata = read_file('t/idp-metadata.xml');
 ok($metadata);
-my $idp = Net::SAML2::IdP->new($metadata);
+my $idp = Net::SAML2::IdP->new_from_xml( xml => $metadata, cacert => 't/cacert.pem' );
 ok($idp);
 
 my $sso_url = $idp->sso_url('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect');
 ok($sso_url);
-my $authnreq = $sp->authn_request($sso_url)->as_xml;
+my $authnreq = $sp->authn_request($idp->entityid)->as_xml;
 ok($authnreq);
 
-my $redirect = $sp->redirect_binding($sso_url);
+my $redirect = $sp->sso_redirect_binding($idp, 'SAMLRequest');
 ok($redirect);
 
-my $location = $redirect->sign_request(
+my $location = $redirect->sign(
         $authnreq,
         'http://return/url',
 );
 ok($location);
 
-my ($request, $relaystate) = $redirect->handle_request($location);
+my ($request, $relaystate) = $redirect->verify($location);
 ok($request);
 ok($relaystate);
 ok($relaystate eq 'http://return/url');

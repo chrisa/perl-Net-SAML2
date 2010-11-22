@@ -1,6 +1,6 @@
 package Net::SAML2::Binding::POST;
-use strict;
-use warnings;
+use Moose;
+use MooseX::Types::Moose qw/ Str /;
 
 =head1 NAME
 
@@ -29,14 +29,7 @@ No arguments.
 
 =cut
 
-sub new {
-        my ($class, %args) = @_;
-        my $self = bless {}, $class;
-
-	$self->{cacert} = $args{cacert};
-
-        return $self;
-}
+has 'cacert' => (isa => Str, is => 'ro', required => 1);
 
 =head2 handle_response($response)
 
@@ -56,7 +49,7 @@ sub handle_response {
 
 	# verify the signing certificate
 	my $cert = $x->signer_cert;
-	my $ca = Crypt::OpenSSL::VerifyX509->new($self->{cacert});
+	my $ca = Crypt::OpenSSL::VerifyX509->new($self->cacert);
 	$ret = $ca->verify($cert);
 
 	if ($ret) {

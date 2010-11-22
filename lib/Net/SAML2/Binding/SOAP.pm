@@ -1,6 +1,7 @@
 package Net::SAML2::Binding::SOAP;
-use strict;
-use warnings;
+use Moose;
+use MooseX::Types::Moose qw/ Str Object /;
+use MooseX::Types::URI qw/ Uri /;
 
 =head1 NAME
 
@@ -41,18 +42,13 @@ Arguments:
 
 =cut
 
-sub new {
-        my ($class, %args) = @_;
-        my $self = bless {}, $class;
+has 'ua'       => (isa => Object, is => 'ro', required => 1,
+		   default => sub { LWP::UserAgent->new });
 
-        $self->{ua}	  = $args{ua};
-        $self->{url}	  = $args{url};
-        $self->{key}	  = $args{key};
-        $self->{cert}	  = $args{cert};
-        $self->{idp_cert} = $args{idp_cert};
-
-        return $self;
-}
+has 'url'      => (isa => Uri, is => 'ro', required => 1, coerce => 1);
+has 'key'      => (isa => Str, is => 'ro', required => 1);
+has 'cert'     => (isa => Str, is => 'ro', required => 1);
+has 'idp_cert' => (isa => Str, is => 'ro', required => 1);
 
 =head2 request($message)
 
@@ -68,13 +64,13 @@ sub request {
 
         my $soap_action = 'http://www.oasis-open.org/committees/security';
 
-        my $req = POST $self->{url};
+        my $req = POST $self->url;
         $req->header('SOAPAction' => $soap_action);
         $req->header('Content-Type' => 'text/xml');
         $req->header('Content-Length' => length $request);
         $req->content($request);
 
-        my $ua = $self->{ua} || LWP::UserAgent->new;
+        my $ua = $self->ua;
         my $res = $ua->request($req);
 
 	return $self->handle_response($res->content);
@@ -92,7 +88,7 @@ sub handle_response {
 	my ($self, $response) = @_;
 
 	# verify the response
-        my $sig_verify = XML::Sig->new({ x509 => 1, cert_text => $self->{idp_cert} });
+        my $sig_verify = XML::Sig->new({ x509 => 1, cert_text => $self->idp_cert });
         my $ret = $sig_verify->verify($response);
         die "bad SOAP response" unless $ret;
 
@@ -123,7 +119,7 @@ sub handle_request {
 	my $saml = $parser->findnodes_as_string('/soap-env:Envelope/soap-env:Body/*');
 
 	if (defined $saml) {
-		my $sig_verify = XML::Sig->new({ x509 => 1, cert_text => $self->{idp_cert} });
+		my $sig_verify = XML::Sig->new({ x509 => 1, cert_text => $self->idp_cert });
 		my $ret = $sig_verify->verify($saml);
 		return unless $ret;
 
@@ -146,8 +142,8 @@ sub create_soap_envelope {
 	# sign the message
         my $sig = XML::Sig->new({ 
 		x509 => 1,
-		key  => $self->{key},
-		cert => $self->{cert}
+		key  => $self->key,
+		cert => $self->cert,
 	});
         my $signed_message = $sig->sign($message);
 	

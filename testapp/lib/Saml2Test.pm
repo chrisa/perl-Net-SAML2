@@ -23,24 +23,12 @@ get '/' => sub {
 };
 
 get '/login' => sub {
-        my $idp = Net::SAML2::IdP->new_from_url(config->{idp});
-
-        my $sp = Net::SAML2::SP->new(
-		id   => 'http://localhost:3000',
-                url  => 'http://localhost:3000',
-                cert => 'sign-nopw-cert.pem',
-		key  => 'sign-nopw-cert.pem',
-        );
-
-        my $sso_url = $idp->sso_url('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect');
-        my $authnreq = $sp->authn_request($idp->entityID)->as_xml;
-
-        my $redirect = Net::SAML2::Binding::Redirect->new(
-                key => 'sign-nopw-cert.pem',
-                url => $sso_url,
-        );
-
-        my $url = $redirect->sign_request($authnreq);
+        my $idp = _idp();
+	my $sp = _sp();
+        my $authnreq = $sp->authn_request($idp->entityid)->as_xml;
+	
+	my $redirect = $sp->sso_redirect_binding($idp, 'SAMLRequest');
+        my $url = $redirect->sign($authnreq);
         redirect $url, 302;
 
         return "Redirected\n";
@@ -51,41 +39,28 @@ get '/logout-local' => sub {
 };
 
 get '/logout-redirect' => sub {
-        my $idp = Net::SAML2::IdP->new_from_url(config->{idp});
-        my $slo_url = $idp->slo_url('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect');
-        
-        my $sp = Net::SAML2::SP->new(
-		id   => 'http://localhost:3000',
-                url  => 'http://localhost:3000',
-                cert => 'sign-nopw-cert.pem',
-        );
+        my $idp = _idp();
+	my $sp = _sp();
+
         my $logoutreq = $sp->logout_request(
-		$idp->entityID, params->{nameid}, params->{session}
+		$idp->entityid, params->{nameid}, params->{session}
 	)->as_xml;
 
-        my $redirect = Net::SAML2::Binding::Redirect->new(
-                key => 'sign-nopw-cert.pem',
-                url => $slo_url,
-        );
-
-        my $url = $redirect->sign_request($logoutreq);
+        my $redirect = $sp->slo_redirect_binding($idp, 'SAMLRequest');
+        my $url = $redirect->sign($logoutreq);
         redirect $url, 302;
 
         return "Redirected\n";
 };
 
 get '/logout-soap' => sub {
-        my $idp = Net::SAML2::IdP->new_from_url(config->{idp});
+        my $idp = _idp();
         my $slo_url = $idp->slo_url('urn:oasis:names:tc:SAML:2.0:bindings:SOAP');
 	my $idp_cert = $idp->cert('signing');
-        
-        my $sp = Net::SAML2::SP->new(
-		id   => 'http://localhost:3000',
-                url  => 'http://localhost:3000',
-                cert => 'sign-nopw-cert.pem',
-        );
+
+	my $sp = _sp();
         my $logoutreq = $sp->logout_request(
-		$idp->entityID, params->{nameid}, params->{session}
+		$idp->entityid, params->{nameid}, params->{session}
 	)->as_xml;
 
         my $soap = Net::SAML2::Binding::SOAP->new(
@@ -110,7 +85,7 @@ post '/consumer-post' => sub {
         );
         
         if ($ret) {
-                my $assertion = Net::SAML2::Protocol::Assertion->new(
+                my $assertion = Net::SAML2::Protocol::Assertion->new_from_xml(
                         xml => decode_base64(params->{SAMLResponse})
                 );
 
@@ -122,18 +97,14 @@ post '/consumer-post' => sub {
 };
 
 get '/consumer-artifact' => sub {
-        my $idp = Net::SAML2::IdP->new_from_url(config->{idp});
+        my $idp = _idp();
 	my $idp_cert = $idp->cert('signing');
         my $art_url  = $idp->art_url('urn:oasis:names:tc:SAML:2.0:bindings:SOAP');
 
 	my $artifact = params->{SAMLart};
 
-        my $sp = Net::SAML2::SP->new(
-		id   => 'http://localhost:3000',
-                url  => 'http://localhost:3000',
-                cert => 'sign-nopw-cert.pem',
-        );
-	my $request = $sp->artifact_request($idp->entityID, $artifact)->as_xml;
+	my $sp = _sp();
+	my $request = $sp->artifact_request($idp->entityid, $artifact)->as_xml;
 
         my $soap = Net::SAML2::Binding::SOAP->new(
                 url	 => $art_url,
@@ -144,7 +115,7 @@ get '/consumer-artifact' => sub {
         my $response = $soap->request($request);
 
         if ($response) {
-                my $assertion = Net::SAML2::Protocol::Assertion->new(
+                my $assertion = Net::SAML2::Protocol::Assertion->new_from_xml(
                         xml => $response
                 );
                 
@@ -156,22 +127,42 @@ get '/consumer-artifact' => sub {
 };
 
 get '/sls-redirect-response' => sub {
-        my $post = Net::SAML2::Binding::Redirect->new;
-        my $ret = $post->handle_response(
-                params->{SAMLResponse}
-        );
+        my $idp = _idp();
+	my $idp_cert = $idp->cert('signing');
+
+	my $sp = _sp();
+	my $redirect = $sp->slo_redirect_binding($idp, 'SAMLResponse');
+        my ($response, $relaystate) = $redirect->verify(request->request_uri);
         
-        redirect '/', 302;
+        redirect $relaystate || '/', 302;
         return "Redirected\n";
 };
 
 get '/metadata.xml' => sub {
-        my $sp = Net::SAML2::SP->new(
-		id   => 'http://localhost:3000',
-                url  => 'http://localhost:3000',
-                cert => 'sign-nopw-cert.pem',
-        );
+	my $sp = _sp();
         return $sp->metadata;
 };
+
+sub _sp {
+        my $sp = Net::SAML2::SP->new(
+		id     => 'http://localhost:3000',
+                url    => 'http://localhost:3000',
+                cert   => 'sign-nopw-cert.pem',
+		cacert => 'saml_cacert.pem',
+		
+		org_name	 => 'Saml2Test',
+		org_display_name => 'Saml2Test app for Net::SAML2',
+		org_contact	 => 'saml2test@example.com',
+        );
+	return $sp;
+}	
+
+sub _idp {
+        my $idp = Net::SAML2::IdP->new_from_url(
+		url    => config->{idp},
+		cacert => 'saml_cacert.pem'
+	);
+	return $idp;
+}
 
 true;

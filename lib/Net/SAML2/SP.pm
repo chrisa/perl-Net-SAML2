@@ -1,6 +1,9 @@
 package Net::SAML2::SP;
-use strict;
-use warnings;
+use Moose;
+use MooseX::Types::Moose qw/ Str /;
+use MooseX::Types::URI qw/ Uri /;
+
+with 'Net::SAML2::Role::Templater';
 
 =head1 NAME
 
@@ -37,23 +40,25 @@ Arguments:
 
 =cut
 
-sub new { 
-        my ($class, %args) = @_;
-        my $self = bless {}, $class;
+has 'url'    => (isa => Uri, is => 'ro', required => 1, coerce => 1);
+has 'id'     => (isa => Str, is => 'ro', required => 1);
+has 'cert'   => (isa => Str, is => 'ro', required => 1);
+has 'cacert' => (isa => Str, is => 'ro', required => 1);
 
-	$self->{cacert_path} = $args{cacert};
-	$self->{cert_path}   = $args{cert};
-	$self->{url}	     = $args{url};
-	$self->{id}	     = $args{id};
+has 'org_name'	       => (isa => Str, is => 'ro', required => 1);
+has 'org_display_name' => (isa => Str, is => 'ro', required => 1);
+has 'org_contact'      => (isa => Str, is => 'ro', required => 1);
 
-	$self->{org_name}         = $args{org_name};
-	$self->{org_display_name} = $args{org_display_name};
-	$self->{org_contact}      = $args{org_contact};
+has '_cert_text' => (isa => Str, is => 'rw', required => 0);
 
-        my $cert = Crypt::OpenSSL::X509->new_from_file($args{cert});
-        $self->{cert} = $cert->as_string;
-        $self->{cert} =~ s/-----[^-]*-----//gm;
+sub BUILD {
+	my ($self) = @_;
 
+        my $cert = Crypt::OpenSSL::X509->new_from_file($self->cert);
+        my $text = $cert->as_string;
+        $text =~ s/-----[^-]*-----//gm;
+	$self->_cert_text($text);
+	
         return $self;
 }
 
@@ -69,7 +74,7 @@ sub authn_request {
 	
 	my $authnreq = Net::SAML2::Protocol::AuthnRequest->new(
 		issueinstant => DateTime->now,
-		issuer       => $self->{id},
+		issuer       => $self->id,
 		destination  => $destination,
 	);
 	
@@ -89,7 +94,7 @@ sub logout_request {
 	my ($self, $destination, $nameid, $session) = @_;
 
 	my $logout_req = Net::SAML2::Protocol::LogoutRequest->new(
-                issuer      => $self->{id},
+                issuer      => $self->id,
                 destination => $destination,
                 nameid      => $nameid,
                 session     => $session,
@@ -112,7 +117,7 @@ sub logout_response {
 	my ($self, $destination, $status, $response_to) = @_;
 
 	my $logout_req = Net::SAML2::Protocol::LogoutResponse->new(
-                issuer      => $self->{id},
+                issuer      => $self->id,
                 destination => $destination,
 		status      => $status,
 		response_to => $response_to,
@@ -133,7 +138,7 @@ sub artifact_request {
 	my ($self, $destination, $artifact) = @_;
 	
 	my $artifact_request = Net::SAML2::Protocol::ArtifactResolve->new(
-		issuer	     => $self->{id},
+		issuer	     => $self->id,
 		destination  => $destination,
 		artifact     => $artifact,
 		issueinstant => DateTime->now,
@@ -142,19 +147,43 @@ sub artifact_request {
 	return $artifact_request;
 }
 
-=head2 redirect_binding
+=head2 sso_redirect_binding($idp, $param)
 
 Returns a Redirect binding object for this SP, configured against the
-given IDP.
+given IDP for Single Sign On. $param specifies the name of the query
+parameter involved - typically SAMLRequest.
 
 =cut
 
-sub redirect_binding {
-	my ($self, $idp) = @_;
+sub sso_redirect_binding {
+	my ($self, $idp, $param) = @_;
 	
 	my $redirect = Net::SAML2::Binding::Redirect->new(
-		key => $self->{cert_path},
-		url => $idp,
+                url   => $idp->sso_url('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'),
+                cert  => $idp->cert('signing'),
+                key   => $self->cert,
+                param => $param,
+	);
+	
+	return $redirect;
+}
+
+=head2 slo_redirect_binding
+
+Returns a Redirect binding object for this SP, configured against the
+given IDP for Single Log Out. $param specifies the name of the query
+parameter involved - typically SAMLRequest or SAMLResponse.
+
+=cut
+
+sub slo_redirect_binding {
+	my ($self, $idp, $param) = @_;
+	
+	my $redirect = Net::SAML2::Binding::Redirect->new(
+                url   => $idp->slo_url('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'),
+                cert  => $idp->cert('signing'),
+                key   => $self->cert,
+                param => $param,
 	);
 	
 	return $redirect;
@@ -174,8 +203,8 @@ sub soap_binding {
 
 	my $soap = Net::SAML2::Binding::SOAP->new(
 		ua       => $ua,
-		key	 => $self->{cert_path},
-		cert	 => $self->{cert_path},
+		key	 => $self->cert,
+		cert	 => $self->cert,
 		url	 => $idp_url,
 		idp_cert => $idp_cert,
 	);
@@ -193,7 +222,7 @@ sub post_binding {
 	my ($self) = @_;
 	
         my $post = Net::SAML2::Binding::POST->new(
-		cacert => $self->{cacert_path},
+		cacert => $self->cacert,
 	);
 	
 	return $post;
@@ -208,33 +237,34 @@ Returns the metadata XML document for this SP.
 sub metadata {
         my ($self) = @_;
 
-        return <<"METADATA";
-<?xml version="1.0"?>
-<md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" entityID="$self->{id}">
-  <md:SPSSODescriptor AuthnRequestsSigned="1" WantAssertionsSigned="1" errorURL="$self->{url}/error" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+        my $template = <<'EOXML';
+<md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" entityID="<?= $_[0]->id ?>">
+  <md:SPSSODescriptor AuthnRequestsSigned="1" WantAssertionsSigned="1" errorURL="<?= $_[0]->url ?>/error" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
     <md:KeyDescriptor use="signing">
       <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
         <ds:X509Data>
           <ds:X509Certificate>
-$self->{cert}
+<?= $_[0]->cert ?>
           </ds:X509Certificate>
         </ds:X509Data>
       </ds:KeyInfo>
     </md:KeyDescriptor>
-    <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP" Location="$self->{url}/slo-soap"/>
-    <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="$self->{url}/consumer-post" index="1" isDefault="true"/>
+    <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP" Location="<?= $_[0]->url ?>/slo-soap"/>
+    <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="<?= $_[0]->url ?>/consumer-post" index="1" isDefault="true"/>
   </md:SPSSODescriptor>
   <md:Organization>
-    <md:OrganizationName xml:lang="en">$self->{org_name}</md:OrganizationName>
-    <md:OrganizationDisplayName xml:lang="en">$self->{org_display_name}</md:OrganizationDisplayName>
-    <md:OrganizationURL xml:lang="en">$self->{url}/</md:OrganizationURL>
+    <md:OrganizationName xml:lang="en"><?= $_[0]->org_name ?></md:OrganizationName>
+    <md:OrganizationDisplayName xml:lang="en"><?= $_[0]->org_display_name ?></md:OrganizationDisplayName>
+    <md:OrganizationURL xml:lang="en"><?= $_[0]->url ?>/</md:OrganizationURL>
   </md:Organization>
   <md:ContactPerson contactType="other">
-    <md:Company>$self->{org_display_name}</md:Company>
-    <md:EmailAddress>$self->{org_contact}</md:EmailAddress>
+    <md:Company><?= $_[0]->org_display_name ?></md:Company>
+    <md:EmailAddress><?= $_[0]->org_contact ?></md:EmailAddress>
   </md:ContactPerson>
 </md:EntityDescriptor>
-METADATA
+EOXML
+
+	return $self->template($template);
 }
 
 1;

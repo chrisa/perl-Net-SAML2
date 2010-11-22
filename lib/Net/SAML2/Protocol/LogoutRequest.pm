@@ -1,6 +1,10 @@
 package Net::SAML2::Protocol::LogoutRequest;
-use strict;
-use warnings;
+use Moose;
+use MooseX::Types::Moose qw/ Str /;
+use MooseX::Types::URI qw/ Uri /;
+
+with 'Net::SAML2::Role::Templater',
+     'Net::SAML2::Role::ProtocolMessage';
 
 =head1 NAME
 
@@ -30,17 +34,10 @@ Arguments:
 
 =cut
 
-sub new { 
-        my ($class, %args) = @_;
-        my $self = bless {}, $class;
-
-        $self->{session}     = $args{session};
-        $self->{nameid}      = $args{nameid};
-        $self->{issuer}      = $args{issuer};
-        $self->{destination} = $args{destination};
-
-        return $self;
-}
+has 'session'	  => (isa => Str, is => 'ro', required => 1);
+has 'nameid'	  => (isa => Str, is => 'ro', required => 1);
+has 'issuer'	  => (isa => Uri, is => 'ro', required => 1, coerce => 1);
+has 'destination' => (isa => Uri, is => 'ro', required => 1, coerce => 1);
 
 =head2 new_from_xml
 
@@ -50,17 +47,18 @@ Create a LogoutRequest object from the given XML.
 
 sub new_from_xml {
 	my ($class, %args) = @_;
-        my $self = bless {}, $class;
 
         my $xpath = XML::XPath->new( xml => $args{xml} );
         $xpath->set_namespace('saml', 'urn:oasis:names:tc:SAML:2.0:assertion');
 	$xpath->set_namespace('samlp', 'urn:oasis:names:tc:SAML:2.0:protocol');
 
-	$self->{id}          = $xpath->findvalue('/samlp:LogoutRequest/@ID')->value;
-        $self->{session}     = $xpath->findvalue('/samlp:LogoutRequest/samlp:SessionIndex')->value;
-        $self->{issuer}	     = $xpath->findvalue('/samlp:LogoutRequest/saml:Issuer')->value;
-        $self->{nameid}	     = $xpath->findvalue('/samlp:LogoutRequest/saml:NameID')->value;
-	$self->{destination} = $xpath->findvalue('/samlp:LogoutRequest/saml:NameID/@NameQualifier')->value;
+	my $self = $class->new(
+		id          => $xpath->findvalue('/samlp:LogoutRequest/@ID')->value,
+		session     => $xpath->findvalue('/samlp:LogoutRequest/samlp:SessionIndex')->value,
+		issuer	    => $xpath->findvalue('/samlp:LogoutRequest/saml:Issuer')->value,
+		nameid	    => $xpath->findvalue('/samlp:LogoutRequest/saml:NameID')->value,
+		destination => $xpath->findvalue('/samlp:LogoutRequest/saml:NameID/@NameQualifier')->value,
+	);
 
 	return $self;
 }
@@ -74,74 +72,19 @@ Returns the LogoutRequest as XML.
 sub as_xml {
         my ($self) = @_;
 
-        my $xml =<<"EOXML";
+	my $template = <<'EOXML';
 <sp:LogoutRequest xmlns:sp="urn:oasis:names:tc:SAML:2.0:protocol"
-	ID="21B78E9C6C8ECF16F01E4A0F15AB2D46" IssueInstant="2010-04-28T21:36:11.230Z"
+	ID="<?= $_[0]->id ?>" IssueInstant="<?= $_[0]->issue_instant ?>"
 	Version="2.0">
-	<sa:Issuer xmlns:sa="urn:oasis:names:tc:SAML:2.0:assertion">$self->{issuer}</sa:Issuer>
+	<sa:Issuer xmlns:sa="urn:oasis:names:tc:SAML:2.0:assertion"><?= $_[0]->issuer ?></sa:Issuer>
 	<sa:NameID xmlns:sa="urn:oasis:names:tc:SAML:2.0:assertion" Format="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
-		   NameQualifier="$self->{destination}" 
-                   SPNameQualifier="$self->{issuer}">$self->{nameid}</sa:NameID>
-	<sp:SessionIndex>$self->{session}</sp:SessionIndex>
+		   NameQualifier="<?= $_[0]->destination ?>" 
+                   SPNameQualifier="<?= $_[0]->issuer ?>"><?= $_[0]->nameid ?></sa:NameID>
+	<sp:SessionIndex><?= $_[0]->session ?></sp:SessionIndex>
 </sp:LogoutRequest>
 EOXML
 
-        return $xml;
+	return $self->template($template);
 }
 
-=head2 id
-
-Returns the ID of the parsed response.
-
-=cut
-
-sub id { 
-	my ($self) = @_;
-        return $self->{id};
-}
-
-=head2 session
-
-Returns the Session attribute of the parsed response.
-
-=cut
-
-sub session { 
-	my ($self) = @_;
-        return $self->{session};
-}
-
-=head2 nameid
-
-Returns the NameID attribute of the parsed response.
-
-=cut
-
-sub nameid {
-	my ($self) = @_;
-        return $self->{nameid};
-}
-
-=head2 issuer
-
-Returns the Issuer URI  of the parsed response.
-
-=cut
-
-sub issuer {
-	my ($self) = @_;
-        return $self->{issuer};
-}
-
-=head2 destination
-
-Returns the Destination URI of the parsed response.
-
-=cut
-
-sub destination {
-	my ($self) = @_;
-        return $self->{destination};
-}
-
-1;
+__PACKAGE__->meta->make_immutable;

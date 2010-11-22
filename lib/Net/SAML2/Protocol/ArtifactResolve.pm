@@ -1,6 +1,10 @@
 package Net::SAML2::Protocol::ArtifactResolve;
-use strict;
-use warnings;
+use Moose;
+use MooseX::Types::Moose qw/ Str /;
+use MooseX::Types::URI qw/ Uri /;
+
+with 'Net::SAML2::Role::Templater',
+     'Net::SAML2::Role::ProtocolMessage';
 
 =head1 NAME
 
@@ -27,22 +31,14 @@ Arguments:
 
  * issuer - the issuing SP's identity URI
  * artifact - the artifact to be resolved
- * issueinstant - a DateTime for "now"
  * destination - the IdP's identity URI
 
 =cut
 
-sub new {
-        my ($class, %args) = @_;
-        my $self = bless {}, $class;
+has 'artifact'    => (isa => Str, is => 'ro', required => 1);
+has 'issuer'      => (isa => Uri, is => 'ro', required => 1, coerce => 1);
+has 'destination' => (isa => Uri, is => 'ro', required => 1, coerce => 1);
 
-        $self->{issuer} = $args{issuer};
-        $self->{artifact} = $args{artifact};
-        $self->{destination}  = $args{destination};
-	$self->{issueinstant} = $args{issueinstant};
-
-        return $self;
-}
 
 =head2 as_xml
 
@@ -53,24 +49,19 @@ Returns the ArtifactResolve request as XML.
 sub as_xml {
         my ($self) = @_;
 
-	my $issueinstant = DateTime::Format::XSD->format_datetime(
-		$self->{issueinstant}
-	);
-
-        my $xml = <<"EOXML";
- <samlp:ArtifactResolve
-   xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"   
-   ID="_cce4ee769ed970b501d680f697989d14"
-   IssueInstant="$issueinstant"
-   Destination="$self->{destination}" 
+        my $template = <<'EOXML';
+<samlp:ArtifactResolve xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"   
+   ID="<?= $_[0]->id ?>"
+   IssueInstant="<?= $_[0]->issue_instant ?>"
+   Destination="<?= $_[0]->destination ?>" 
    ProviderName="My SP's human readable name."
    Version="2.0">
-   <saml:Issuer xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">$self->{issuer}</saml:Issuer>
-   <samlp:Artifact>$self->{artifact}</samlp:Artifact>
- </samlp:ArtifactResolve>
+   <saml:Issuer xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"><?= $_[0]->issuer ?></saml:Issuer>
+   <samlp:Artifact><?= $_[0]->artifact ?></samlp:Artifact>
+</samlp:ArtifactResolve>
 EOXML
 
-	return $xml;
+	return $self->template($template);
 }
 
 1;

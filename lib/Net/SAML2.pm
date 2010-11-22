@@ -28,7 +28,7 @@ Net::SAML2 - SAML bindings and protocol implementation
                 url => $sso_url,
         );
 
-        my $url = $redirect->sign_request($authnreq);
+        my $url = $redirect->sign($authnreq);
 
   # handle the POST back from the IdP, via the browser:
 
@@ -38,7 +38,7 @@ Net::SAML2 - SAML bindings and protocol implementation
         );
         
         if ($ret) {
-                my $assertion = Net::SAML2::Protocol::Assertion->new(
+                my $assertion = Net::SAML2::Protocol::Assertion->new_from_xml(
                         xml => decode_base64($saml_response)
                 );
 

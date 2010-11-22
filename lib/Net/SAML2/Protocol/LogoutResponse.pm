@@ -1,6 +1,10 @@
 package Net::SAML2::Protocol::LogoutResponse;
-use strict;
-use warnings;
+use Moose;
+use MooseX::Types::Moose qw/ Str /;
+use MooseX::Types::URI qw/ Uri /;
+
+with 'Net::SAML2::Role::Templater',
+     'Net::SAML2::Role::ProtocolMessage';
 
 =head1 NAME
 
@@ -30,17 +34,10 @@ Arguments:
 
 =cut
 
-sub new { 
-        my ($class, %args) = @_;
-        my $self = bless {}, $class;
-
-        $self->{issuer}      = $args{issuer};
-        $self->{destination} = $args{destination};
-        $self->{status}	     = $args{status};
-        $self->{response_to} = $args{response_to};
-
-        return $self;
-}
+has 'issuer'	  => (isa => Uri, is => 'ro', required => 1, coerce => 1);
+has 'destination' => (isa => Uri, is => 'ro', required => 1, coerce => 1);
+has 'status'	  => (isa => Str, is => 'ro', required => 1);
+has 'response_to' => (isa => Str, is => 'ro', required => 1);
 
 =head2 new_from_xml
 
@@ -50,18 +47,19 @@ Create a LogoutResponse object from the given XML.
 
 sub new_from_xml {
 	my ($class, %args) = @_;
-	my $self = bless {}, $class;
      
 	my $xpath = XML::XPath->new( xml => $args{xml} );
 	$xpath->set_namespace('saml', 'urn:oasis:names:tc:SAML:2.0:assertion');
 	$xpath->set_namespace('samlp', 'urn:oasis:names:tc:SAML:2.0:protocol');
 
-	$self->{id}	     = $xpath->findvalue('/samlp:LogoutResponse/@ID')->value;
-	$self->{response_to} = $xpath->findvalue('/samlp:LogoutResponse/@InResponseTo')->value;
-	$self->{destination} = $xpath->findvalue('/samlp:LogoutResponse/@Destination')->value;
-	$self->{session}     = $xpath->findvalue('/samlp:LogoutResponse/samlp:SessionIndex')->value;
-	$self->{issuer}	     = $xpath->findvalue('/samlp:LogoutResponse/saml:Issuer')->value;
-	$self->{status}	     = $xpath->findvalue('/samlp:LogoutResponse/samlp:Status/samlp:StatusCode/@Value')->value;
+	my $self = $class->new(
+		id	    => $xpath->findvalue('/samlp:LogoutResponse/@ID')->value,
+		response_to => $xpath->findvalue('/samlp:LogoutResponse/@InResponseTo')->value,
+		destination => $xpath->findvalue('/samlp:LogoutResponse/@Destination')->value,
+		session     => $xpath->findvalue('/samlp:LogoutResponse/samlp:SessionIndex')->value,
+		issuer	    => $xpath->findvalue('/samlp:LogoutResponse/saml:Issuer')->value,
+		status	    => $xpath->findvalue('/samlp:LogoutResponse/samlp:Status/samlp:StatusCode/@Value')->value,
+	);
 
 	return $self;
 }
@@ -75,87 +73,21 @@ Returns the LogoutResponse as XML.
 sub as_xml {
 	my ($self) = @_;
 
-	my $xml =<<"EOXML";
+	my $template =<<'EOXML';
 <samlp:LogoutResponse xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" 
-    ID="sba02cbf4142978d48fa339164d4bb6f20f49b761" 
+    ID="<?= $_[0]->id ?>" 
     Version="2.0" 
-    IssueInstant="2010-09-17T16:07:53Z"
-    Destination="$self->{destination}" 
-    InResponseTo="$self->{response_to}">
-         <saml:Issuer xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">$self->{issuer}</saml:Issuer>
+    IssueInstant="<?= $_[0]->issue_instant ?>"
+    Destination="<?= $_[0]->destination ?>" 
+    InResponseTo="<?= $_[0]->response_to ?>">
+         <saml:Issuer xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"><?= $_[0]->issuer ?></saml:Issuer>
          <samlp:Status xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol">
-             <samlp:StatusCode xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" Value="$self->{status}"/>
+             <samlp:StatusCode xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" Value="<?= $_[0]->status ?>"/>
          </samlp:Status>
 </samlp:LogoutResponse>
 EOXML
-	
-	return $xml;
-}
 
-=head2 id
-
-Returns the ID of the parsed response.
-
-=cut
-
-sub id { 
-	my ($self) = @_;
-        return $self->{id};
-}
-
-=head2 session
-
-Returns the Session attribute of the parsed response.
-
-=cut
-
-sub session { 
-	my ($self) = @_;
-        return $self->{session};
-}
-
-=head2 response_to
-
-Returns the InResponseTo attribute of the parsed response.
-
-=cut
-
-sub response_to {
-	my ($self) = @_;
-        return $self->{response_to};
-}
-
-=head2 issuer
-
-Returns the issuer URI of the parsed response.
-
-=cut
-
-sub issuer {
-	my ($self) = @_;
-        return $self->{issuer};
-}
-
-=head2 destination
-
-Returns the destination URI of the parsed response.
-
-=cut
-
-sub destination {
-	my ($self) = @_;
-        return $self->{destination};
-}
-
-=head2 status
-
-Returns the status URI of the parsed response.
-
-=cut
-
-sub status {
-	my ($self) = @_;
-        return $self->{status};
+	return $self->template($template);
 }
 
 1;

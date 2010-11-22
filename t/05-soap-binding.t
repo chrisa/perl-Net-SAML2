@@ -3,7 +3,6 @@ use strict;
 use warnings;
 use Net::SAML2;
 use MIME::Base64;
-use Data::Dumper;
 use File::Slurp;
 use LWP::UserAgent;
 
@@ -20,7 +19,7 @@ ok($sp);
 
 my $metadata = read_file('t/idp-metadata.xml');
 ok($metadata);
-my $idp = Net::SAML2::IdP->new($metadata);
+my $idp = Net::SAML2::IdP->new_from_xml( xml => $metadata, cacert => 't/cacert.pem' );
 ok($idp);
 my $slo_url = $idp->slo_url('urn:oasis:names:tc:SAML:2.0:bindings:SOAP');
 ok($slo_url);
@@ -31,7 +30,7 @@ my $nameid = 'user-to-log-out';
 my $session = 'session-to-log-out';
 
 my $request = $sp->logout_request(
-        $idp->entityID, $nameid, $session,
+        $idp->entityid, $nameid, $session,
 )->as_xml;
 ok($request);
 

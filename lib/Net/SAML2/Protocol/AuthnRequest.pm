@@ -1,6 +1,10 @@
 package Net::SAML2::Protocol::AuthnRequest;
-use strict;
-use warnings;
+use Moose;
+use MooseX::Types::Moose qw /Str /;
+use MooseX::Types::URI qw/ Uri /;
+
+with 'Net::SAML2::Role::Templater',
+     'Net::SAML2::Role::ProtocolMessage';
 
 =head1 NAME
 
@@ -18,30 +22,19 @@ Net::SAML2::Protocol::AuthnRequest - SAML2 AuthnRequest object
 
 =cut
 
-use DateTime::Format::XSD;
-
 =head2 new( ... )
 
 Constructor. Creates an instance of the AuthnRequest object. 
 
 Arguments:
 
- * issueinstant - a DateTime for "now"
  * issuer - the SP's identity URI
  * destination - the IdP's identity URI
 
 =cut
 
-sub new { 
-        my ($class, %args) = @_;
-        my $self = bless {}, $class;
-
-	$self->{issueinstant} = $args{issueinstant};
-        $self->{issuer}       = $args{issuer};
-        $self->{destination}  = $args{destination};
-
-        return $self;
-}
+has 'issuer'	  => (isa => Uri, is => 'ro', required => 1, coerce => 1);
+has 'destination' => (isa => Uri, is => 'ro', required => 1, coerce => 1);
 
 =head2 as_xml()
 
@@ -52,25 +45,20 @@ Returns the AuthnRequest as XML.
 sub as_xml {
         my ($self) = @_;
 
-	my $issueinstant = DateTime::Format::XSD->format_datetime(
-		$self->{issueinstant}
-	);
-	
-        my $xml =<<"EOXML";
-<?xml version="1.0"?>
+        my $template =<<'EOXML';
 <sp:AuthnRequest xmlns:sp="urn:oasis:names:tc:SAML:2.0:protocol"
-                 Destination="$self->{destination}" 
-                 ID="N3k95Hg41WCHdwc9mqXynLPhB"
-                 IssueInstant="$issueinstant" 
+                 Destination="<?= $_[0]->destination ?>" 
+                 ID="<?= $_[0]->id ?>"
+                 IssueInstant="<?= $_[0]->issue_instant ?>" 
                  ProviderName="My SP's human readable name."
                  Version="2.0">
-  <sa:Issuer xmlns:sa="urn:oasis:names:tc:SAML:2.0:assertion">$self->{issuer}</sa:Issuer>
+  <sa:Issuer xmlns:sa="urn:oasis:names:tc:SAML:2.0:assertion"><?= $_[0]->issuer ?></sa:Issuer>
   <sp:NameIDPolicy AllowCreate="1"
                    Format="urn:oasis:names:tc:SAML:2.0:nameid-format:persistent"/>
 </sp:AuthnRequest>
 EOXML
 
-        return $xml;
+	return $self->template($template);
 }
 
 1;

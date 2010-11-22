@@ -77,7 +77,7 @@ ok(qr/verified/, $subject);
 #diag "subject: $subject\n";
 
 my $assertion_xml = decode_base64($response);
-my $assertion = Net::SAML2::Protocol::Assertion->new(
+my $assertion = Net::SAML2::Protocol::Assertion->new_from_xml(
         xml => $xml,
 );
 ok($assertion);
