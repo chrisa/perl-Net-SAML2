@@ -147,6 +147,23 @@ sub create_soap_envelope {
 	});
         my $signed_message = $sig->sign($message);
 	
+	# OpenSSO ArtifactResolve hack
+	#
+	# OpenSSO's ArtifactResolve parser is completely hateful. It demands that 
+	# the order of child elements in an ArtifactResolve message be:
+	#
+	# 1: saml:Issuer
+	# 2: dsig:Signature
+	# 3: samlp:Artifact
+	#
+	# Really.
+	#
+	if ($signed_message =~ /ArtifactResolve/) {
+		$signed_message =~ s!(<dsig:Signature.*?</dsig:Signature>)!!s;
+		my $signature = $1;
+		$signed_message =~ s/(<\/saml:Issuer>)/$1$signature/;
+	}
+
 	# test verify
         my $ret = $sig->verify($signed_message);
         die "failed to sign" unless $ret;
