@@ -1,6 +1,6 @@
 package Net::SAML2::Protocol::LogoutRequest;
 use Moose;
-use MooseX::Types::Moose qw/ Str /;
+use MooseX::Types::Common::String qw/ NonEmptySimpleStr /;
 use MooseX::Types::URI qw/ Uri /;
 
 with 'Net::SAML2::Role::Templater',
@@ -34,8 +34,8 @@ Arguments:
 
 =cut
 
-has 'session'	  => (isa => Str, is => 'ro', required => 1);
-has 'nameid'	  => (isa => Str, is => 'ro', required => 1);
+has 'session'	  => (isa => NonEmptySimpleStr, is => 'ro', required => 1);
+has 'nameid'	  => (isa => NonEmptySimpleStr, is => 'ro', required => 1);
 has 'issuer'	  => (isa => Uri, is => 'ro', required => 1, coerce => 1);
 has 'destination' => (isa => Uri, is => 'ro', required => 1, coerce => 1);
 

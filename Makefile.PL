@@ -27,6 +27,7 @@ requires 'DateTime::Format::XSD';
 requires 'Moose';
 requires 'MooseX::Types';
 requires 'MooseX::Types::URI';
+requires 'MooseX::Types::Common';
 
 author_requires 'Test::NoTabs';
 author_requires 'Test::Pod' => '1.14';
