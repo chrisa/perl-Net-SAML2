@@ -239,19 +239,19 @@ sub metadata {
 
         my $template = <<'EOXML';
 <md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" entityID="<?= $_[0]->id ?>">
-  <md:SPSSODescriptor AuthnRequestsSigned="1" WantAssertionsSigned="1" errorURL="<?= $_[0]->url ?>/error" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+  <md:SPSSODescriptor AuthnRequestsSigned="1" WantAssertionsSigned="1" errorURL="<?= $_[0]->url ?>/saml/error" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
     <md:KeyDescriptor use="signing">
       <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
         <ds:X509Data>
           <ds:X509Certificate>
-<?= $_[0]->cert ?>
+<?= $_[0]->_cert_text ?>
           </ds:X509Certificate>
         </ds:X509Data>
       </ds:KeyInfo>
     </md:KeyDescriptor>
-    <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP" Location="<?= $_[0]->url ?>/slo-soap"/>
-    <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="<?= $_[0]->url ?>/consumer-post" index="1" isDefault="true"/>
-    <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact" Location="<?= $_[0]->url ?>/consumer-artifact" index="2" isDefault="false"/>
+    <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP" Location="<?= $_[0]->url ?>/saml/slo-soap"/>
+    <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="<?= $_[0]->url ?>/saml/consumer-post" index="1" isDefault="true"/>
+    <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact" Location="<?= $_[0]->url ?>/saml/consumer-artifact" index="2" isDefault="false"/>
   </md:SPSSODescriptor>
   <md:Organization>
     <md:OrganizationName xml:lang="en"><?= $_[0]->org_name ?></md:OrganizationName>
