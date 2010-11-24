@@ -251,6 +251,7 @@ sub metadata {
     </md:KeyDescriptor>
     <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP" Location="<?= $_[0]->url ?>/slo-soap"/>
     <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="<?= $_[0]->url ?>/consumer-post" index="1" isDefault="true"/>
+    <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact" Location="<?= $_[0]->url ?>/consumer-artifact" index="2" isDefault="false"/>
   </md:SPSSODescriptor>
   <md:Organization>
     <md:OrganizationName xml:lang="en"><?= $_[0]->org_name ?></md:OrganizationName>
