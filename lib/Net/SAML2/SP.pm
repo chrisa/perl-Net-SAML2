@@ -207,6 +207,7 @@ sub soap_binding {
 		cert	 => $self->cert,
 		url	 => $idp_url,
 		idp_cert => $idp_cert,
+		cacert   => $self->cacert,
 	);
 	
 	return $soap;

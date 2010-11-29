@@ -49,6 +49,7 @@ has 'url'      => (isa => Uri, is => 'ro', required => 1, coerce => 1);
 has 'key'      => (isa => Str, is => 'ro', required => 1);
 has 'cert'     => (isa => Str, is => 'ro', required => 1);
 has 'idp_cert' => (isa => Str, is => 'ro', required => 1);
+has 'cacert'   => (isa => Str, is => 'ro', required => 1);
 
 =head2 request($message)
 
@@ -88,9 +89,17 @@ sub handle_response {
 	my ($self, $response) = @_;
 
 	# verify the response
-        my $sig_verify = XML::Sig->new({ x509 => 1, cert_text => $self->idp_cert });
-        my $ret = $sig_verify->verify($response);
+        my $x = XML::Sig->new({ x509 => 1, cert_text => $self->idp_cert });
+        my $ret = $x->verify($response);
         die "bad SOAP response" unless $ret;
+
+	# verify the signing certificate
+	my $cert = $x->signer_cert;
+	my $ca = Crypt::OpenSSL::VerifyX509->new($self->cacert);
+	$ret = $ca->verify($cert);
+	die "bad signer cert" unless $ret;
+
+	my $subject = sprintf("%s (verified)", $cert->subject);
 
 	# parse the SOAP response and return the payload
 	my $parser = XML::XPath->new( xml => $response );
@@ -98,7 +107,7 @@ sub handle_response {
 	$parser->set_namespace('samlp', 'urn:oasis:names:tc:SAML:2.0:protocol');
 	
 	my $saml = $parser->findnodes_as_string('/soap-env:Envelope/soap-env:Body/*');
-	return $saml;
+	return ($subject, $saml);
 }
 
 =head2 handle_request( $request )
@@ -119,11 +128,16 @@ sub handle_request {
 	my $saml = $parser->findnodes_as_string('/soap-env:Envelope/soap-env:Body/*');
 
 	if (defined $saml) {
-		my $sig_verify = XML::Sig->new({ x509 => 1, cert_text => $self->idp_cert });
-		my $ret = $sig_verify->verify($saml);
-		return unless $ret;
+		my $x = XML::Sig->new({ x509 => 1, cert_text => $self->idp_cert });
+		my $ret = $x->verify($saml);
+		die "bad signature" unless $ret;
 
-		my $subject = $sig_verify->signer_cert->subject;
+		my $cert = $x->signer_cert;
+		my $ca = Crypt::OpenSSL::VerifyX509->new($self->cacert);
+		$ret = $ca->verify($cert);
+		die "bad certificate in request: ".$cert->subject unless $ret;
+
+		my $subject = $cert->subject;
 		return ($subject, $saml);
 	}
 
