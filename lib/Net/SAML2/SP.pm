@@ -45,20 +45,20 @@ has 'id'     => (isa => Str, is => 'ro', required => 1);
 has 'cert'   => (isa => Str, is => 'ro', required => 1);
 has 'cacert' => (isa => Str, is => 'ro', required => 1);
 
-has 'org_name'	       => (isa => Str, is => 'ro', required => 1);
+has 'org_name'         => (isa => Str, is => 'ro', required => 1);
 has 'org_display_name' => (isa => Str, is => 'ro', required => 1);
 has 'org_contact'      => (isa => Str, is => 'ro', required => 1);
 
 has '_cert_text' => (isa => Str, is => 'rw', required => 0);
 
 sub BUILD {
-	my ($self) = @_;
+        my ($self) = @_;
 
         my $cert = Crypt::OpenSSL::X509->new_from_file($self->cert);
         my $text = $cert->as_string;
         $text =~ s/-----[^-]*-----//gm;
-	$self->_cert_text($text);
-	
+        $self->_cert_text($text);
+        
         return $self;
 }
 
@@ -70,15 +70,15 @@ given destination, which should be the identity URI of the IdP.
 =cut
 
 sub authn_request {
-	my ($self, $destination) = @_;
-	
-	my $authnreq = Net::SAML2::Protocol::AuthnRequest->new(
-		issueinstant => DateTime->now,
-		issuer       => $self->id,
-		destination  => $destination,
-	);
-	
-	return $authnreq;
+        my ($self, $destination) = @_;
+        
+        my $authnreq = Net::SAML2::Protocol::AuthnRequest->new(
+                issueinstant => DateTime->now,
+                issuer       => $self->id,
+                destination  => $destination,
+        );
+        
+        return $authnreq;
 }
 
 =head2 logout_request($destination, $nameid, $session)
@@ -91,16 +91,16 @@ Also requires the nameid and session to be logged out.
 =cut
 
 sub logout_request {
-	my ($self, $destination, $nameid, $session) = @_;
+        my ($self, $destination, $nameid, $session) = @_;
 
-	my $logout_req = Net::SAML2::Protocol::LogoutRequest->new(
+        my $logout_req = Net::SAML2::Protocol::LogoutRequest->new(
                 issuer      => $self->id,
                 destination => $destination,
                 nameid      => $nameid,
                 session     => $session,
         );
 
-	return $logout_req;
+        return $logout_req;
 }
 
 =head2 logout_response($destination, $status, $response_to)
@@ -114,16 +114,16 @@ LogoutRequest.
 =cut
 
 sub logout_response {
-	my ($self, $destination, $status, $response_to) = @_;
+        my ($self, $destination, $status, $response_to) = @_;
 
-	my $logout_req = Net::SAML2::Protocol::LogoutResponse->new(
+        my $logout_req = Net::SAML2::Protocol::LogoutResponse->new(
                 issuer      => $self->id,
                 destination => $destination,
-		status      => $status,
-		response_to => $response_to,
+                status      => $status,
+                response_to => $response_to,
         );
 
-	return $logout_req;
+        return $logout_req;
 }
 
 =head2 artifact_request($destination, $artifact)
@@ -135,16 +135,16 @@ IdP.
 =cut
 
 sub artifact_request {
-	my ($self, $destination, $artifact) = @_;
-	
-	my $artifact_request = Net::SAML2::Protocol::ArtifactResolve->new(
-		issuer	     => $self->id,
-		destination  => $destination,
-		artifact     => $artifact,
-		issueinstant => DateTime->now,
-	);
-	
-	return $artifact_request;
+        my ($self, $destination, $artifact) = @_;
+        
+        my $artifact_request = Net::SAML2::Protocol::ArtifactResolve->new(
+                issuer       => $self->id,
+                destination  => $destination,
+                artifact     => $artifact,
+                issueinstant => DateTime->now,
+        );
+        
+        return $artifact_request;
 }
 
 =head2 sso_redirect_binding($idp, $param)
@@ -156,16 +156,16 @@ parameter involved - typically SAMLRequest.
 =cut
 
 sub sso_redirect_binding {
-	my ($self, $idp, $param) = @_;
-	
-	my $redirect = Net::SAML2::Binding::Redirect->new(
+        my ($self, $idp, $param) = @_;
+        
+        my $redirect = Net::SAML2::Binding::Redirect->new(
                 url   => $idp->sso_url('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'),
                 cert  => $idp->cert('signing'),
                 key   => $self->cert,
                 param => $param,
-	);
-	
-	return $redirect;
+        );
+        
+        return $redirect;
 }
 
 =head2 slo_redirect_binding
@@ -177,16 +177,16 @@ parameter involved - typically SAMLRequest or SAMLResponse.
 =cut
 
 sub slo_redirect_binding {
-	my ($self, $idp, $param) = @_;
-	
-	my $redirect = Net::SAML2::Binding::Redirect->new(
+        my ($self, $idp, $param) = @_;
+        
+        my $redirect = Net::SAML2::Binding::Redirect->new(
                 url   => $idp->slo_url('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'),
                 cert  => $idp->cert('signing'),
                 key   => $self->cert,
                 param => $param,
-	);
-	
-	return $redirect;
+        );
+        
+        return $redirect;
 }
 
 =head2 soap_binding
@@ -199,18 +199,18 @@ XXX UA
 =cut
 
 sub soap_binding {
-	my ($self, $ua, $idp_url, $idp_cert) = @_;
+        my ($self, $ua, $idp_url, $idp_cert) = @_;
 
-	my $soap = Net::SAML2::Binding::SOAP->new(
-		ua       => $ua,
-		key	 => $self->cert,
-		cert	 => $self->cert,
-		url	 => $idp_url,
-		idp_cert => $idp_cert,
-		cacert   => $self->cacert,
-	);
-	
-	return $soap;
+        my $soap = Net::SAML2::Binding::SOAP->new(
+                ua       => $ua,
+                key      => $self->cert,
+                cert     => $self->cert,
+                url      => $idp_url,
+                idp_cert => $idp_cert,
+                cacert   => $self->cacert,
+        );
+        
+        return $soap;
 }
 
 =head2 post_binding
@@ -220,13 +220,13 @@ Returns a POST binding object for this SP.
 =cut
 
 sub post_binding {
-	my ($self) = @_;
-	
+        my ($self) = @_;
+        
         my $post = Net::SAML2::Binding::POST->new(
-		cacert => $self->cacert,
-	);
-	
-	return $post;
+                cacert => $self->cacert,
+        );
+        
+        return $post;
 }
 
 =head2 metadata
@@ -266,7 +266,7 @@ sub metadata {
 </md:EntityDescriptor>
 EOXML
 
-	return $self->template($template);
+        return $self->template($template);
 }
 
 1;

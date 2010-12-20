@@ -18,18 +18,18 @@ has 'id'            => (isa => Str, is => 'ro', required => 1);
 has 'issue_instant' => (isa => Str, is => 'ro', required => 1);
 
 around 'BUILDARGS' => sub {
-	my $orig = shift;
-	my $class = shift;	
-	my %args = @_;
+        my $orig = shift;
+        my $class = shift;      
+        my %args = @_;
 
-	# random ID for this message
-	$args{id} ||= unpack 'H*', Crypt::OpenSSL::Random::random_pseudo_bytes(16);
+        # random ID for this message
+        $args{id} ||= unpack 'H*', Crypt::OpenSSL::Random::random_pseudo_bytes(16);
 
-	# IssueInstant in UTC
-	my $dt = DateTime->now( time_zone => 'UTC' );
-	$args{issue_instant} ||= $dt->strftime('%FT%TZ');
-	
-	return \%args;
+        # IssueInstant in UTC
+        my $dt = DateTime->now( time_zone => 'UTC' );
+        $args{issue_instant} ||= $dt->strftime('%FT%TZ');
+        
+        return \%args;
 };
 
 1;

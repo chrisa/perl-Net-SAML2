@@ -19,10 +19,10 @@ Evaluates the given template using $self as the context.
 =cut
 
 sub template {
-	my ($self, $template) = @_;
-	my $renderer = build_mt($template);
-	my $xml = $renderer->($self)->as_string;
-	return $xml;
+        my ($self, $template) = @_;
+        my $renderer = build_mt($template);
+        my $xml = $renderer->($self)->as_string;
+        return $xml;
 }
 
 1;

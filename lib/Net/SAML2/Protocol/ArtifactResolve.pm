@@ -61,7 +61,7 @@ sub as_xml {
 </samlp:ArtifactResolve>
 EOXML
 
-	return $self->template($template);
+        return $self->template($template);
 }
 
 1;

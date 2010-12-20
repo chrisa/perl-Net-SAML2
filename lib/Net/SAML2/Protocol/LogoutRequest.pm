@@ -34,9 +34,9 @@ Arguments:
 
 =cut
 
-has 'session'	  => (isa => NonEmptySimpleStr, is => 'ro', required => 1);
-has 'nameid'	  => (isa => NonEmptySimpleStr, is => 'ro', required => 1);
-has 'issuer'	  => (isa => Uri, is => 'ro', required => 1, coerce => 1);
+has 'session'     => (isa => NonEmptySimpleStr, is => 'ro', required => 1);
+has 'nameid'      => (isa => NonEmptySimpleStr, is => 'ro', required => 1);
+has 'issuer'      => (isa => Uri, is => 'ro', required => 1, coerce => 1);
 has 'destination' => (isa => Uri, is => 'ro', required => 1, coerce => 1);
 
 =head2 new_from_xml
@@ -46,21 +46,21 @@ Create a LogoutRequest object from the given XML.
 =cut
 
 sub new_from_xml {
-	my ($class, %args) = @_;
+        my ($class, %args) = @_;
 
         my $xpath = XML::XPath->new( xml => $args{xml} );
         $xpath->set_namespace('saml', 'urn:oasis:names:tc:SAML:2.0:assertion');
-	$xpath->set_namespace('samlp', 'urn:oasis:names:tc:SAML:2.0:protocol');
+        $xpath->set_namespace('samlp', 'urn:oasis:names:tc:SAML:2.0:protocol');
 
-	my $self = $class->new(
-		id          => $xpath->findvalue('/samlp:LogoutRequest/@ID')->value,
-		session     => $xpath->findvalue('/samlp:LogoutRequest/samlp:SessionIndex')->value,
-		issuer	    => $xpath->findvalue('/samlp:LogoutRequest/saml:Issuer')->value,
-		nameid	    => $xpath->findvalue('/samlp:LogoutRequest/saml:NameID')->value,
-		destination => $xpath->findvalue('/samlp:LogoutRequest/saml:NameID/@NameQualifier')->value,
-	);
+        my $self = $class->new(
+                id          => $xpath->findvalue('/samlp:LogoutRequest/@ID')->value,
+                session     => $xpath->findvalue('/samlp:LogoutRequest/samlp:SessionIndex')->value,
+                issuer      => $xpath->findvalue('/samlp:LogoutRequest/saml:Issuer')->value,
+                nameid      => $xpath->findvalue('/samlp:LogoutRequest/saml:NameID')->value,
+                destination => $xpath->findvalue('/samlp:LogoutRequest/saml:NameID/@NameQualifier')->value,
+        );
 
-	return $self;
+        return $self;
 }
 
 =head2 as_xml()
@@ -72,19 +72,19 @@ Returns the LogoutRequest as XML.
 sub as_xml {
         my ($self) = @_;
 
-	my $template = <<'EOXML';
+        my $template = <<'EOXML';
 <sp:LogoutRequest xmlns:sp="urn:oasis:names:tc:SAML:2.0:protocol"
-	ID="<?= $_[0]->id ?>" IssueInstant="<?= $_[0]->issue_instant ?>"
-	Version="2.0">
-	<sa:Issuer xmlns:sa="urn:oasis:names:tc:SAML:2.0:assertion"><?= $_[0]->issuer ?></sa:Issuer>
-	<sa:NameID xmlns:sa="urn:oasis:names:tc:SAML:2.0:assertion" Format="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
-		   NameQualifier="<?= $_[0]->destination ?>" 
+        ID="<?= $_[0]->id ?>" IssueInstant="<?= $_[0]->issue_instant ?>"
+        Version="2.0">
+        <sa:Issuer xmlns:sa="urn:oasis:names:tc:SAML:2.0:assertion"><?= $_[0]->issuer ?></sa:Issuer>
+        <sa:NameID xmlns:sa="urn:oasis:names:tc:SAML:2.0:assertion" Format="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+                   NameQualifier="<?= $_[0]->destination ?>" 
                    SPNameQualifier="<?= $_[0]->issuer ?>"><?= $_[0]->nameid ?></sa:NameID>
-	<sp:SessionIndex><?= $_[0]->session ?></sp:SessionIndex>
+        <sp:SessionIndex><?= $_[0]->session ?></sp:SessionIndex>
 </sp:LogoutRequest>
 EOXML
 
-	return $self->template($template);
+        return $self->template($template);
 }
 
 __PACKAGE__->meta->make_immutable;

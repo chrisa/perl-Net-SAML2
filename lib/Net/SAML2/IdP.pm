@@ -55,7 +55,7 @@ sub new_from_url {
         die "no metadata" unless $res->is_success;
         my $xml = $res->content;
 
-	return $class->new_from_xml( xml => $xml, cacert => $args{cacert} );
+        return $class->new_from_xml( xml => $xml, cacert => $args{cacert} );
 }
 
 =head2 new_from_xml( xml => $xml, cacert => $cacert )
@@ -66,13 +66,13 @@ document.
 =cut
 
 sub new_from_xml {
-	my ($class, %args) = @_;
+        my ($class, %args) = @_;
 
         my $xpath = XML::XPath->new( xml => $args{xml} );
         $xpath->set_namespace('md', 'urn:oasis:names:tc:SAML:2.0:metadata');
-	$xpath->set_namespace('ds', 'http://www.w3.org/2000/09/xmldsig#');
+        $xpath->set_namespace('ds', 'http://www.w3.org/2000/09/xmldsig#');
 
-	my $data;
+        my $data;
 
         for my $sso ($xpath->findnodes('//md:EntityDescriptor/md:IDPSSODescriptor/md:SingleSignOnService')) {
                 my $binding = $sso->getAttribute('Binding');
@@ -89,34 +89,34 @@ sub new_from_xml {
                 $data->{Art}->{$binding} = $art->getAttribute('Location');
         }
 
-	for my $key ($xpath->findnodes('//md:EntityDescriptor/md:IDPSSODescriptor/md:KeyDescriptor')) {
-		my $use = $key->getAttribute('use');
-		my ($text) = $key->findvalue('ds:KeyInfo/ds:X509Data/ds:X509Certificate') =~ /^\s+(.+?)\s+$/s;
-		$data->{Cert}->{$use} = sprintf("-----BEGIN CERTIFICATE-----\n%s\n-----END CERTIFICATE-----\n", $text);
-	}
+        for my $key ($xpath->findnodes('//md:EntityDescriptor/md:IDPSSODescriptor/md:KeyDescriptor')) {
+                my $use = $key->getAttribute('use');
+                my ($text) = $key->findvalue('ds:KeyInfo/ds:X509Data/ds:X509Certificate') =~ /^\s+(.+?)\s+$/s;
+                $data->{Cert}->{$use} = sprintf("-----BEGIN CERTIFICATE-----\n%s\n-----END CERTIFICATE-----\n", $text);
+        }
 
-	my $self = $class->new(
-		entityid => $xpath->findvalue('//md:EntityDescriptor/@entityID')->value,
-		sso_urls => $data->{SSO},
-		slo_urls => $data->{SLO},
-		art_urls => $data->{Art},
-		certs    => $data->{Cert},
-		cacert   => $args{cacert},
-	);
+        my $self = $class->new(
+                entityid => $xpath->findvalue('//md:EntityDescriptor/@entityID')->value,
+                sso_urls => $data->{SSO},
+                slo_urls => $data->{SLO},
+                art_urls => $data->{Art},
+                certs    => $data->{Cert},
+                cacert   => $args{cacert},
+        );
 
         return $self;
 }
 
 sub BUILD {
-	my ($self) = @_;
-	my $ca = Crypt::OpenSSL::VerifyX509->new($self->cacert);
-	
-	for my $use (keys %{ $self->certs }) {
-		my $cert = Crypt::OpenSSL::X509->new_from_string($self->certs->{$use});
-		unless ($ca->verify($cert)) {
-			die "can't verify IdP '$use' cert";
-		}
-	}	
+        my ($self) = @_;
+        my $ca = Crypt::OpenSSL::VerifyX509->new($self->cacert);
+        
+        for my $use (keys %{ $self->certs }) {
+                my $cert = Crypt::OpenSSL::X509->new_from_string($self->certs->{$use});
+                unless ($ca->verify($cert)) {
+                        die "can't verify IdP '$use' cert";
+                }
+        }       
 }
 
 =head2 sso_url($binding)
@@ -162,8 +162,8 @@ Returns the IdP's certificate for the given use (e.g. 'signing').
 =cut
 
 sub cert {
-	my ($self, $use) = @_;
-	return $self->certs->{$use};
+        my ($self, $use) = @_;
+        return $self->certs->{$use};
 }
 
 1;

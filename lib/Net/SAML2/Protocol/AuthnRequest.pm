@@ -33,7 +33,7 @@ Arguments:
 
 =cut
 
-has 'issuer'	  => (isa => Uri, is => 'ro', required => 1, coerce => 1);
+has 'issuer'      => (isa => Uri, is => 'ro', required => 1, coerce => 1);
 has 'destination' => (isa => Uri, is => 'ro', required => 1, coerce => 1);
 
 =head2 as_xml()
@@ -58,8 +58,7 @@ sub as_xml {
 </sp:AuthnRequest>
 EOXML
 
-	return $self->template($template);
+        return $self->template($template);
 }
 
 1;
-        

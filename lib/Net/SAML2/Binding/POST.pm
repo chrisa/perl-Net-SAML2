@@ -41,21 +41,21 @@ Base64-encoded response, from the SAMLResponse CGI parameter.
 sub handle_response {
         my ($self, $response) = @_;
 
-	# unpack and check the signature
+        # unpack and check the signature
         my $xml = decode_base64($response);
         my $x = XML::Sig->new({ x509 => 1 });
         my $ret = $x->verify($xml);
-	die "signature check failed" unless $ret;
+        die "signature check failed" unless $ret;
 
-	# verify the signing certificate
-	my $cert = $x->signer_cert;
-	my $ca = Crypt::OpenSSL::VerifyX509->new($self->cacert);
-	$ret = $ca->verify($cert);
+        # verify the signing certificate
+        my $cert = $x->signer_cert;
+        my $ca = Crypt::OpenSSL::VerifyX509->new($self->cacert);
+        $ret = $ca->verify($cert);
 
-	if ($ret) {
-		return sprintf("%s (verified)", $cert->subject);
-	}
-	return;
+        if ($ret) {
+                return sprintf("%s (verified)", $cert->subject);
+        }
+        return;
 }
         
 1;

@@ -44,20 +44,20 @@ sub new_from_xml {
         my $xpath = XML::XPath->new( xml => $args{xml} );
         $xpath->set_namespace('saml', 'urn:oasis:names:tc:SAML:2.0:assertion');
 
-	my $attributes = {};
+        my $attributes = {};
         for my $node ($xpath->findnodes('//saml:Assertion/saml:AttributeStatement/saml:Attribute')) {
-		my @values = $node->findnodes('saml:AttributeValue');
+                my @values = $node->findnodes('saml:AttributeValue');
                 $attributes->{$node->getAttribute('Name')} = [
-			map { $_->string_value } @values
-		];
+                        map { $_->string_value } @values
+                ];
         }
         
-	my $not_before = DateTime::Format::XSD->parse_datetime(
-		$xpath->findvalue('//saml:Conditions/@NotBefore')->value
-	);
-	my $not_after =  DateTime::Format::XSD->parse_datetime(
-		$xpath->findvalue('//saml:Conditions/@NotOnOrAfter')->value
-	);
+        my $not_before = DateTime::Format::XSD->parse_datetime(
+                $xpath->findvalue('//saml:Conditions/@NotBefore')->value
+        );
+        my $not_after =  DateTime::Format::XSD->parse_datetime(
+                $xpath->findvalue('//saml:Conditions/@NotOnOrAfter')->value
+        );
 
         my $self = $class->new(
                 attributes => $attributes,
@@ -67,7 +67,7 @@ sub new_from_xml {
                 not_before => $not_before,
                 not_after  => $not_after,
         );
-	
+        
         return $self;
 }
 
@@ -79,8 +79,7 @@ Returns the CN attribute, if provided.
 
 sub name {
         my ($self) = @_;
-	return $self->attributes->{CN}->[0];
+        return $self->attributes->{CN}->[0];
 }
 
 1;
-	
