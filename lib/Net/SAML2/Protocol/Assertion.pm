@@ -1,6 +1,9 @@
 package Net::SAML2::Protocol::Assertion;
 use Moose;
 use MooseX::Types::Moose qw/ Str HashRef ArrayRef /;
+use MooseX::Types::DateTime qw/ DateTime /;
+use MooseX::Types::Common::String qw/ NonEmptySimpleStr /;
+use DateTime::Format::XSD;
 
 with 'Net::SAML2::Role::Templater',
      'Net::SAML2::Role::ProtocolMessage';
@@ -20,6 +23,9 @@ Net::SAML2::Protocol::Assertion - SAML2 assertion object
 has 'attributes' => (isa => HashRef[ArrayRef], is => 'ro', required => 1);
 has 'session'    => (isa => Str, is => 'ro', required => 1);
 has 'nameid'     => (isa => Str, is => 'ro', required => 1);
+has 'not_before' => (isa => DateTime, is => 'ro', required => 1);
+has 'not_after'  => (isa => DateTime, is => 'ro', required => 1);
+has 'audience'   => (isa => NonEmptySimpleStr, is => 'ro', required => 1);
 
 =head1 METHODS
 
@@ -46,10 +52,20 @@ sub new_from_xml {
 		];
         }
         
+	my $not_before = DateTime::Format::XSD->parse_datetime(
+		$xpath->findvalue('//saml:Conditions/@NotBefore')->value
+	);
+	my $not_after =  DateTime::Format::XSD->parse_datetime(
+		$xpath->findvalue('//saml:Conditions/@NotOnOrAfter')->value
+	);
+
         my $self = $class->new(
                 attributes => $attributes,
                 session    => $xpath->findvalue('//saml:AuthnStatement/@SessionIndex')->value,
                 nameid     => $xpath->findvalue('//saml:Subject/saml:NameID')->value,
+                audience   => $xpath->findvalue('//saml:Conditions/saml:AudienceRestriction/saml:Audience')->value,
+                not_before => $not_before,
+                not_after  => $not_after,
         );
 	
         return $self;
@@ -67,3 +83,4 @@ sub name {
 }
 
 1;
+	

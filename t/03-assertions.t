@@ -77,4 +77,8 @@ is($assertion->attributes->{Phone2}->[0], '123456');
 is($assertion->attributes->{Phone2}->[1], '234567');
 is($assertion->attributes->{Phone2}->[2], '345678');
 
+isa_ok($assertion->not_before, 'DateTime');
+isa_ok($assertion->not_after,  'DateTime');
+is($assertion->audience, 'http://ct.local');
+
 done_testing;
