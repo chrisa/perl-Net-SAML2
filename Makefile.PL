@@ -28,6 +28,7 @@ requires 'Moose';
 requires 'MooseX::Types';
 requires 'MooseX::Types::URI';
 requires 'MooseX::Types::Common';
+requires 'MooseX::Types::DateTime';
 
 author_requires 'Test::NoTabs';
 author_requires 'Test::Pod' => '1.14';
