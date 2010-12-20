@@ -3,6 +3,7 @@ use Moose;
 use MooseX::Types::Moose qw/ Str HashRef ArrayRef /;
 use MooseX::Types::DateTime qw/ DateTime /;
 use MooseX::Types::Common::String qw/ NonEmptySimpleStr /;
+use DateTime;
 use DateTime::Format::XSD;
 
 with 'Net::SAML2::Role::Templater',
@@ -80,6 +81,31 @@ Returns the CN attribute, if provided.
 sub name {
         my ($self) = @_;
         return $self->attributes->{CN}->[0];
+}
+
+=head2 valid( $audience )
+
+Returns true if this Assertion is currently valid for the given audience.
+
+Checks the audience matches, and that the current time is within the
+Assertions validity period as specified in its Conditions element.
+
+=cut
+
+sub valid {
+        my ($self, $audience) = @_;
+
+        return 0 unless defined $audience;
+        return 0 unless ($audience eq $self->audience);
+
+        my $now = DateTime::->now;
+        
+        # not_before is "NotBefore" element - exact match is ok
+        # not_after is "NotOnOrAfter" element - exact match is *not* ok
+        return 0 unless DateTime::->compare($now, $self->not_before) > -1;
+        return 0 unless DateTime::->compare($self->not_after, $now) > 0;
+
+        return 1;
 }
 
 1;

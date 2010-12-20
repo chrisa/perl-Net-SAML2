@@ -80,5 +80,15 @@ is($assertion->attributes->{Phone2}->[2], '345678');
 isa_ok($assertion->not_before, 'DateTime');
 isa_ok($assertion->not_after,  'DateTime');
 is($assertion->audience, 'http://ct.local');
+is($assertion->valid('foo'), 0);
+is($assertion->valid('http://ct.local'), 0);
+
+# fudge validity times to test valid()
+$assertion->{not_before} = DateTime->now;
+$assertion->{not_after} = DateTime->now->add( minutes => 15);
+is($assertion->valid('http://ct.local'), 1);
+
+$assertion->{not_before} = DateTime->now->add( minutes => 5 );
+is($assertion->valid('http://ct.local'), 0);
 
 done_testing;
