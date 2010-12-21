@@ -116,10 +116,11 @@ LogoutRequest.
 sub logout_response {
         my ($self, $destination, $status, $response_to) = @_;
 
+        my $status_uri = Net::SAML2::Protocol::LogoutResponse->status_uri($status);
         my $logout_req = Net::SAML2::Protocol::LogoutResponse->new(
                 issuer      => $self->id,
                 destination => $destination,
-                status      => $status,
+                status      => $status_uri,
                 response_to => $response_to,
         );
 

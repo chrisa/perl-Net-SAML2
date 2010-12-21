@@ -6,11 +6,14 @@ use Crypt::OpenSSL::Random;
 
 =head1 NAME
 
-Net::SAML2::Role::Templater - defaults for Protocol classes
+Net::SAML2::Role::ProtocolMessage - common behaviour for Protocol messages
 
 =head1 DESCRIPTION
 
 Provides default ID and timestamp arguments for Protocol classes.
+
+Provides a status-URI lookup method for the statuses used by this
+implementation.
 
 =cut
 
@@ -31,5 +34,29 @@ around 'BUILDARGS' => sub {
         
         return \%args;
 };
+
+=head1 METHODS
+
+=head2 status_uri($status)
+
+Provides a mapping from short names for statuses to the full status URIs.
+
+=cut
+
+sub status_uri {
+        my ($self, $status) = @_;
+
+        my $statuses = {
+                success   => 'urn:oasis:names:tc:SAML:2.0:status:Success',
+                requester => 'urn:oasis:names:tc:SAML:2.0:status:Requester',
+                responder => 'urn:oasis:names:tc:SAML:2.0:status:Responder',
+        };
+
+        if (exists $statuses->{$status}) {
+                return $statuses->{$status};
+        }
+
+        return;
+}
 
 1;

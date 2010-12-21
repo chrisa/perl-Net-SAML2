@@ -4,9 +4,9 @@ use warnings;
 use Net::SAML2;
 
 my $lor = Net::SAML2::Protocol::LogoutResponse->new(
-        issuer => 'http://some/sp',
+        issuer      => 'http://some/sp',
         destination => 'http://some/idp',
-        status => 'urn:oasis:names:tc:SAML:2.0:status:Success',
+        status      => 'success',
         response_to => 'randomID', 
 );
 ok($lor);

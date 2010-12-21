@@ -98,7 +98,7 @@ Returns true if the Response's status is Success.
 
 sub success {
         my ($self) = @_;
-        return 1 if $self->status eq 'urn:oasis:names:tc:SAML:2.0:status:Success';
+        return 1 if $self->status eq $self->status_uri('success');
         return 0;
 }
 
