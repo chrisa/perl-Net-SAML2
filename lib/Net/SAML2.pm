@@ -58,10 +58,6 @@ SSO process.
 
 =item SP-side protocol only
 
-=item No verification of the signer of received Assertions
-
-=item Limited handling of protocol / network errors
-
 =item Requires XML metadata from the IdP
 
 =back
