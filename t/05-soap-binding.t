@@ -21,7 +21,7 @@ my $metadata = read_file('t/idp-metadata.xml');
 ok($metadata);
 my $idp = Net::SAML2::IdP->new_from_xml( xml => $metadata, cacert => 't/cacert.pem' );
 ok($idp);
-my $slo_url = $idp->slo_url('urn:oasis:names:tc:SAML:2.0:bindings:SOAP');
+my $slo_url = $idp->slo_url($idp->binding('soap'));
 ok($slo_url);
 my $idp_cert = $idp->cert('signing');
 ok($idp_cert);

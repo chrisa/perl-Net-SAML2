@@ -166,4 +166,26 @@ sub cert {
         return $self->certs->{$use};
 }
 
+=head2 binding($name)
+
+Returns the full Binding URI for the given binding name. Includes this
+module's currently-supported bindings.
+
+=cut
+
+sub binding {
+        my ($self, $name) = @_;
+
+        my $bindings = {
+                redirect => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
+                soap     => 'urn:oasis:names:tc:SAML:2.0:bindings:SOAP',
+        };
+        
+        if (exists $bindings->{$name}) {
+                return $bindings->{$name};
+        }
+
+        return;
+}
+
 1;

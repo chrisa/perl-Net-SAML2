@@ -23,7 +23,7 @@ ok($metadata);
 my $idp = Net::SAML2::IdP->new_from_xml( xml => $metadata, cacert => 't/cacert.pem' );
 ok($idp);
 
-my $sso_url = $idp->sso_url('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect');
+my $sso_url = $idp->sso_url($idp->binding('redirect'));
 ok($sso_url);
 my $authnreq = $sp->authn_request($idp->entityid)->as_xml;
 ok($authnreq);

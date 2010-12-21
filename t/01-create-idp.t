@@ -57,12 +57,9 @@ XML
 my $idp = Net::SAML2::IdP->new_from_xml( xml => $xml, cacert => 't/cacert.pem' );
 ok($idp);
 
-my $redirect_uri = 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect';
-my $soap_uri     = 'urn:oasis:names:tc:SAML:2.0:bindings:SOAP';
-
-ok($idp->sso_url($redirect_uri));
-ok($idp->slo_url($redirect_uri));
-ok($idp->art_url($soap_uri));
+ok($idp->sso_url($idp->binding('redirect')));
+ok($idp->slo_url($idp->binding('redirect')));
+ok($idp->art_url($idp->binding('soap')));
 
 ok($idp->cert('signing'));
 ok($idp->entityid eq 'http://sso.dev.venda.com/opensso');
