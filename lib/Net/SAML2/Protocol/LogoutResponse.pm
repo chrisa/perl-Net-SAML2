@@ -90,4 +90,16 @@ EOXML
         return $self->template($template);
 }
 
+=head2 success
+
+Returns true if the Response's status is Success.
+
+=cut
+
+sub success {
+        my ($self) = @_;
+        return 1 if $self->status eq 'urn:oasis:names:tc:SAML:2.0:status:Success';
+        return 0;
+}
+
 1;
