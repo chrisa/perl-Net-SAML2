@@ -68,6 +68,7 @@ get '/logout-soap' => sub {
 		cert	 => 'sign-nopw-cert.pem',
                 url	 => $slo_url,
 		idp_cert => $idp_cert,
+		cacert   => 'saml_cacert.pem',
         );
 
         my $res = $soap->request($logoutreq);
