@@ -3,8 +3,7 @@ use Moose;
 use MooseX::Types::Moose qw /Str /;
 use MooseX::Types::URI qw/ Uri /;
 
-with 'Net::SAML2::Role::Templater',
-     'Net::SAML2::Role::ProtocolMessage';
+with 'Net::SAML2::Role::ProtocolMessage';
 
 =head1 NAME
 
@@ -45,20 +44,29 @@ Returns the AuthnRequest as XML.
 sub as_xml {
         my ($self) = @_;
 
-        my $template =<<'EOXML';
-<sp:AuthnRequest xmlns:sp="urn:oasis:names:tc:SAML:2.0:protocol"
-                 Destination="<?= $_[0]->destination ?>" 
-                 ID="<?= $_[0]->id ?>"
-                 IssueInstant="<?= $_[0]->issue_instant ?>" 
-                 ProviderName="My SP's human readable name."
-                 Version="2.0">
-  <sa:Issuer xmlns:sa="urn:oasis:names:tc:SAML:2.0:assertion"><?= $_[0]->issuer ?></sa:Issuer>
-  <sp:NameIDPolicy AllowCreate="1"
-                   Format="urn:oasis:names:tc:SAML:2.0:nameid-format:persistent"/>
-</sp:AuthnRequest>
-EOXML
+        my $x = XML::Generator->new(':pretty');
+        my $saml  = ['saml' => 'urn:oasis:names:tc:SAML:2.0:assertion'];
+        my $samlp = ['samlp' => 'urn:oasis:names:tc:SAML:2.0:protocol'];
 
-        return $self->template($template);
+        $x->xml(
+                $x->AuthnRequest(
+                        $samlp,
+                        { Destination => $self->destination,
+                          ID => $self->id,
+                          IssueInstant => $self->issue_instant,
+                          ProviderName => "My SP's human readable name.",
+                          Version => '2.0' },
+                        $x->Issuer(
+                                $saml,
+                                $self->issuer,
+                        ),
+                        $x->NameIDPolicy(
+                                $samlp,
+                                { AllowCreate => '1',
+                                  Format => 'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent' },
+                        )
+                )
+        );
 }
 
 1;

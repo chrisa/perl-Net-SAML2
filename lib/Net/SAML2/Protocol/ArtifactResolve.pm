@@ -3,8 +3,7 @@ use Moose;
 use MooseX::Types::Moose qw/ Str /;
 use MooseX::Types::URI qw/ Uri /;
 
-with 'Net::SAML2::Role::Templater',
-     'Net::SAML2::Role::ProtocolMessage';
+with 'Net::SAML2::Role::ProtocolMessage';
 
 =head1 NAME
 
@@ -49,19 +48,28 @@ Returns the ArtifactResolve request as XML.
 sub as_xml {
         my ($self) = @_;
 
-        my $template = <<'EOXML';
-<samlp:ArtifactResolve xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"   
-   ID="<?= $_[0]->id ?>"
-   IssueInstant="<?= $_[0]->issue_instant ?>"
-   Destination="<?= $_[0]->destination ?>" 
-   ProviderName="My SP's human readable name."
-   Version="2.0">
-   <saml:Issuer xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"><?= $_[0]->issuer ?></saml:Issuer>
-   <samlp:Artifact><?= $_[0]->artifact ?></samlp:Artifact>
-</samlp:ArtifactResolve>
-EOXML
+        my $x = XML::Generator->new(':pretty');
+        my $saml  = ['saml' => 'urn:oasis:names:tc:SAML:2.0:assertion'];
+        my $samlp = ['samlp' => 'urn:oasis:names:tc:SAML:2.0:protocol'];
 
-        return $self->template($template);
+        $x->xml(
+                $x->ArtifactResolve(
+                        $samlp,
+                        { ID => $self->id,
+                          IssueInstant => $self->issue_instant,
+                          Destination => $self->destination,
+                          ProviderName => "My SP's human readable name.",
+                          Version => '2.0' },
+                        $x->Issuer(
+                                $saml,
+                                $self->issuer,
+                        ),
+                        $x->Artifact(
+                                $samlp,
+                                $self->artifact,
+                        ),
+                )
+        );
 }
 
 1;

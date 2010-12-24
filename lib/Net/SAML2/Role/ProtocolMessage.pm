@@ -3,6 +3,7 @@ use Moose::Role;
 use MooseX::Types::Moose qw/ Str /;
 use DateTime::Format::XSD;
 use Crypt::OpenSSL::Random;
+use XML::Generator;
 
 =head1 NAME
 

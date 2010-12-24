@@ -3,8 +3,7 @@ use Moose;
 use MooseX::Types::Common::String qw/ NonEmptySimpleStr /;
 use MooseX::Types::URI qw/ Uri /;
 
-with 'Net::SAML2::Role::Templater',
-     'Net::SAML2::Role::ProtocolMessage';
+with 'Net::SAML2::Role::ProtocolMessage';
 
 =head1 NAME
 
@@ -72,19 +71,33 @@ Returns the LogoutRequest as XML.
 sub as_xml {
         my ($self) = @_;
 
-        my $template = <<'EOXML';
-<sp:LogoutRequest xmlns:sp="urn:oasis:names:tc:SAML:2.0:protocol"
-        ID="<?= $_[0]->id ?>" IssueInstant="<?= $_[0]->issue_instant ?>"
-        Version="2.0">
-        <sa:Issuer xmlns:sa="urn:oasis:names:tc:SAML:2.0:assertion"><?= $_[0]->issuer ?></sa:Issuer>
-        <sa:NameID xmlns:sa="urn:oasis:names:tc:SAML:2.0:assertion" Format="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
-                   NameQualifier="<?= $_[0]->destination ?>" 
-                   SPNameQualifier="<?= $_[0]->issuer ?>"><?= $_[0]->nameid ?></sa:NameID>
-        <sp:SessionIndex><?= $_[0]->session ?></sp:SessionIndex>
-</sp:LogoutRequest>
-EOXML
+        my $x = XML::Generator->new(':pretty');
+        my $saml  = ['saml' => 'urn:oasis:names:tc:SAML:2.0:assertion'];
+        my $samlp = ['samlp' => 'urn:oasis:names:tc:SAML:2.0:protocol'];
 
-        return $self->template($template);
+        $x->xml(
+                $x->LogoutRequest(
+                        $samlp,
+                        { ID => $self->id,
+                          IssueInstant => $self->issue_instant, 
+                          Version => '2.0' },
+                        $x->Issuer(
+                                $saml,
+                                $self->issuer,
+                        ),
+                        $x->NameID(
+                                $saml,
+                                { Format => 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
+                                  NameQualifier => $self->destination,
+                                  SPNameQualifier => $self->issuer },
+                                $self->nameid,
+                        ),
+                        $x->SessionIndex(
+                                $samlp,
+                                $self->session,
+                        ),
+                )
+        );
 }
 
 __PACKAGE__->meta->make_immutable;

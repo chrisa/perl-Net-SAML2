@@ -3,8 +3,7 @@ use Moose;
 use MooseX::Types::Moose qw/ Str /;
 use MooseX::Types::URI qw/ Uri /;
 
-with 'Net::SAML2::Role::Templater',
-     'Net::SAML2::Role::ProtocolMessage';
+with 'Net::SAML2::Role::ProtocolMessage';
 
 =head1 NAME
 
@@ -73,21 +72,31 @@ Returns the LogoutResponse as XML.
 sub as_xml {
         my ($self) = @_;
 
-        my $template =<<'EOXML';
-<samlp:LogoutResponse xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" 
-    ID="<?= $_[0]->id ?>" 
-    Version="2.0" 
-    IssueInstant="<?= $_[0]->issue_instant ?>"
-    Destination="<?= $_[0]->destination ?>" 
-    InResponseTo="<?= $_[0]->response_to ?>">
-         <saml:Issuer xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"><?= $_[0]->issuer ?></saml:Issuer>
-         <samlp:Status xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol">
-             <samlp:StatusCode xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" Value="<?= $_[0]->status ?>"/>
-         </samlp:Status>
-</samlp:LogoutResponse>
-EOXML
+        my $x = XML::Generator->new(':pretty');
+        my $saml  = ['saml' => 'urn:oasis:names:tc:SAML:2.0:assertion'];
+        my $samlp = ['samlp' => 'urn:oasis:names:tc:SAML:2.0:protocol'];
 
-        return $self->template($template);
+        $x->xml(
+                $x->LogoutResponse(
+                        $samlp,
+                        { ID => $self->id,
+                          Version => '2.0',
+                          IssueInstant => $self->issue_instant,
+                          Destination => $self->destination,
+                          InResponseTo => $self->response_to },
+                        $x->Issuer(
+                                $saml,
+                                $self->issuer,
+                        ),
+                        $x->Status(
+                                $samlp,
+                                $x->StatusCode(
+                                        $samlp,
+                                        { Value => $self->status },
+                                )
+                        )
+                )
+        );
 }
 
 =head2 success

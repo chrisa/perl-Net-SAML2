@@ -6,8 +6,7 @@ use MooseX::Types::Common::String qw/ NonEmptySimpleStr /;
 use DateTime;
 use DateTime::Format::XSD;
 
-with 'Net::SAML2::Role::Templater',
-     'Net::SAML2::Role::ProtocolMessage';
+with 'Net::SAML2::Role::ProtocolMessage';
 
 =head1 NAME
 

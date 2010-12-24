@@ -3,8 +3,6 @@ use Moose;
 use MooseX::Types::Moose qw/ Str /;
 use MooseX::Types::URI qw/ Uri /;
 
-with 'Net::SAML2::Role::Templater';
-
 =head1 NAME
 
 Net::SAML2::SP - SAML Service Provider object
@@ -22,6 +20,7 @@ Net::SAML2::SP - SAML Service Provider object
 =cut
 
 use Crypt::OpenSSL::X509;
+use XML::Generator;
 
 =head2 new( ... )
 
@@ -239,35 +238,83 @@ Returns the metadata XML document for this SP.
 sub metadata {
         my ($self) = @_;
 
-        my $template = <<'EOXML';
-<md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" entityID="<?= $_[0]->id ?>">
-  <md:SPSSODescriptor AuthnRequestsSigned="1" WantAssertionsSigned="1" errorURL="<?= $_[0]->url ?>/saml/error" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
-    <md:KeyDescriptor use="signing">
-      <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
-        <ds:X509Data>
-          <ds:X509Certificate>
-<?= $_[0]->_cert_text ?>
-          </ds:X509Certificate>
-        </ds:X509Data>
-      </ds:KeyInfo>
-    </md:KeyDescriptor>
-    <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:SOAP" Location="<?= $_[0]->url ?>/saml/slo-soap"/>
-    <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="<?= $_[0]->url ?>/saml/consumer-post" index="1" isDefault="true"/>
-    <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact" Location="<?= $_[0]->url ?>/saml/consumer-artifact" index="2" isDefault="false"/>
-  </md:SPSSODescriptor>
-  <md:Organization>
-    <md:OrganizationName xml:lang="en"><?= $_[0]->org_name ?></md:OrganizationName>
-    <md:OrganizationDisplayName xml:lang="en"><?= $_[0]->org_display_name ?></md:OrganizationDisplayName>
-    <md:OrganizationURL xml:lang="en"><?= $_[0]->url ?>/</md:OrganizationURL>
-  </md:Organization>
-  <md:ContactPerson contactType="other">
-    <md:Company><?= $_[0]->org_display_name ?></md:Company>
-    <md:EmailAddress><?= $_[0]->org_contact ?></md:EmailAddress>
-  </md:ContactPerson>
-</md:EntityDescriptor>
-EOXML
+        my $x = XML::Generator->new(':pretty');
+        my $md = ['md' => 'urn:oasis:names:tc:SAML:2.0:metadata'];
+        my $ds = ['ds' => 'http://www.w3.org/2000/09/xmldsig#'];
 
-        return $self->template($template);
+        $x->xml(
+                $x->EntityDescriptor(
+                        $md,
+                        { entityID => $self->id },
+                        $x->SPSSODescriptor(
+                                $md,
+                                { AuthnRequestsSigned => '1',
+                                  WantAssertionsSigned => '1',
+                                  errorURL => $self->url . '/saml/error',
+                                  protocolSupportEnumeration => 'urn:oasis:names:tc:SAML:2.0:protocol' },
+                                $x->KeyDescriptor(
+                                        $md,
+                                        { use => 'signing' },
+                                        $x->KeyInfo(
+                                                $ds,
+                                                $x->X509Data(
+                                                        $ds,
+                                                        $x->X509Certificate(
+                                                                $ds,
+                                                                $self->_cert_text,
+                                                        )
+                                                )
+                                        )
+                                ),
+                                $x->SingleLogoutService(
+                                        $md,
+                                        { Binding => 'urn:oasis:names:tc:SAML:2.0:bindings:SOAP',
+                                          Location  => $self->url . '/saml/slo-soap' },
+                                ),
+                                $x->AssertionConsumerService(
+                                        $md,
+                                        { Binding => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST',
+                                          Location => $self->url . '/saml/consumer-post',
+                                          index => '1',
+                                          isDefault => 'true' },
+                                ),
+                                $x->AssertionConsumerService(
+                                        $md,
+                                        { Binding => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact',
+                                          Location => $self->url . '/saml/consumer-artifact',
+                                          index => '2',
+                                          isDefault => 'false' },
+                                ),
+                        ),
+                        $x->Organization(
+                                $md,
+                                $x->OrganizationName(
+                                        $md,
+                                        $self->org_name,
+                                ),
+                                $x->OrganizationDisplayName(
+                                        $md,
+                                        $self->org_display_name,
+                                ),
+                                $x->OrganizationURL(
+                                        $md,
+                                        $self->url
+                                )
+                        ),
+                        $x->ContactPerson(
+                                $md,
+                                { contactType => 'other' },
+                                $x->Company(
+                                        $md,
+                                        $self->org_display_name,
+                                ),
+                                $x->EmailAddress(
+                                        $md,
+                                        $self->org_contact,
+                                ),
+                        )
+                )
+        );
 }
 
 1;

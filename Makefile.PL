@@ -12,6 +12,8 @@ name 'Net-SAML2';
 all_from 'lib/Net/SAML2.pm';
 
 requires 'XML::Sig';
+requires 'XML::XPath';
+requires 'XML::Generator';
 requires 'Crypt::OpenSSL::RSA';
 requires 'Crypt::OpenSSL::X509';
 requires 'Crypt::OpenSSL::Random';
@@ -22,7 +24,6 @@ requires 'File::Slurp';
 requires 'URI';
 requires 'MIME::Base64';
 requires 'LWP::UserAgent';
-requires 'XML::XPath';
 requires 'DateTime::Format::XSD';
 requires 'Moose';
 requires 'MooseX::Types';
