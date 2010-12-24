@@ -39,6 +39,7 @@ Arguments:
  * key - the key to sign with
  * cert - the corresponding certificate
  * idp_cert - the idp's signing certificate
+ * cacert - the CA for the SAML CoT
 
 =cut
 
