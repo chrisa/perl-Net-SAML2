@@ -70,9 +70,11 @@ authentication process with the IdP.
 
 sub sign {
         my ($self, $request, $relaystate) = @_;
-        
+
+        my $input = "$request";
         my $output = '';
-        rawdeflate \$request => \$output;
+
+        rawdeflate \$input => \$output;
         my $req = encode_base64($output, '');
 
         my $u = URI->new($self->url);
