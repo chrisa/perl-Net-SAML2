@@ -238,83 +238,90 @@ Returns the metadata XML document for this SP.
 sub metadata {
         my ($self) = @_;
 
-        my $x = XML::Generator->new(':pretty');
+        my $x = XML::Generator->new(':pretty', conformance => 'loose');
         my $md = ['md' => 'urn:oasis:names:tc:SAML:2.0:metadata'];
         my $ds = ['ds' => 'http://www.w3.org/2000/09/xmldsig#'];
 
-        $x->xml(
-                $x->EntityDescriptor(
-                        $md,
-                        { entityID => $self->id },
-                        $x->SPSSODescriptor(
-                                $md,
-                                { AuthnRequestsSigned => '1',
-                                  WantAssertionsSigned => '1',
-                                  errorURL => $self->url . '/saml/error',
-                                  protocolSupportEnumeration => 'urn:oasis:names:tc:SAML:2.0:protocol' },
-                                $x->KeyDescriptor(
-                                        $md,
-                                        { use => 'signing' },
-                                        $x->KeyInfo(
-                                                $ds,
-                                                $x->X509Data(
-                                                        $ds,
-                                                        $x->X509Certificate(
-                                                                $ds,
-                                                                $self->_cert_text,
-                                                        )
-                                                )
-                                        )
-                                ),
-                                $x->SingleLogoutService(
-                                        $md,
-                                        { Binding => 'urn:oasis:names:tc:SAML:2.0:bindings:SOAP',
-                                          Location  => $self->url . '/saml/slo-soap' },
-                                ),
-                                $x->AssertionConsumerService(
-                                        $md,
-                                        { Binding => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST',
-                                          Location => $self->url . '/saml/consumer-post',
-                                          index => '1',
-                                          isDefault => 'true' },
-                                ),
-                                $x->AssertionConsumerService(
-                                        $md,
-                                        { Binding => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact',
-                                          Location => $self->url . '/saml/consumer-artifact',
-                                          index => '2',
-                                          isDefault => 'false' },
-                                ),
-                        ),
-                        $x->Organization(
-                                $md,
-                                $x->OrganizationName(
-                                        $md,
-                                        $self->org_name,
-                                ),
-                                $x->OrganizationDisplayName(
-                                        $md,
-                                        $self->org_display_name,
-                                ),
-                                $x->OrganizationURL(
-                                        $md,
-                                        $self->url
-                                )
-                        ),
-                        $x->ContactPerson(
-                                $md,
-                                { contactType => 'other' },
-                                $x->Company(
-                                        $md,
-                                        $self->org_display_name,
-                                ),
-                                $x->EmailAddress(
-                                        $md,
-                                        $self->org_contact,
-                                ),
-                        )
-                )
-        );
+	$x->EntityDescriptor(
+		$md,
+		{
+			entityID => $self->id },
+		$x->SPSSODescriptor(
+			$md,
+			{ AuthnRequestsSigned => '1',
+			  WantAssertionsSigned => '1',
+			  errorURL => $self->url . '/saml/error',
+			  protocolSupportEnumeration => 'urn:oasis:names:tc:SAML:2.0:protocol' },
+			$x->KeyDescriptor(
+				$md,
+				{
+					use => 'signing' },
+				$x->KeyInfo(
+					$ds,
+					$x->X509Data(
+						$ds,
+						$x->X509Certificate(
+							$ds,
+							$self->_cert_text,
+						)
+					)
+				)
+			),
+			$x->SingleLogoutService(
+				$md,
+				{ Binding => 'urn:oasis:names:tc:SAML:2.0:bindings:SOAP',
+				  Location  => $self->url . '/saml/slo-soap' },
+			),
+			$x->AssertionConsumerService(
+				$md,
+				{ Binding => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST',
+				  Location => $self->url . '/saml/consumer-post',
+				  index => '1',
+				  isDefault => 'true' },
+			),
+			$x->AssertionConsumerService(
+				$md,
+				{ Binding => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact',
+				  Location => $self->url . '/saml/consumer-artifact',
+				  index => '2',
+				  isDefault => 'false' },
+			),
+		),
+		$x->Organization(
+			$md,
+			$x->OrganizationName(
+				$md,
+				{
+					'xml:lang' => 'en' },
+				$self->org_name,
+			),
+			$x->OrganizationDisplayName(
+				$md,
+				{
+					'xml:lang' => 'en' },
+				$self->org_display_name,
+			),
+			$x->OrganizationURL(
+				$md,
+				{
+					'xml:lang' => 'en' },
+				$self->url
+			)
+		),
+		$x->ContactPerson(
+			$md,
+			{
+				contactType => 'other' },
+			$x->Company(
+				$md,
+				$self->org_display_name,
+			),
+			$x->EmailAddress(
+				$md,
+				$self->org_contact,
+			),
+		)
+	);
 }
 
 1;
