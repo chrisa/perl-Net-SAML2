@@ -4,9 +4,6 @@ use strict;
 use warnings;
 
 use inc::Module::Install 0.91;
-use Module::Install::AuthorRequires;
-use Module::Install::AuthorTests;
-use Module::Install::ReadmeFromPod;
 
 name 'Net-SAML2';
 all_from 'lib/Net/SAML2.pm';
