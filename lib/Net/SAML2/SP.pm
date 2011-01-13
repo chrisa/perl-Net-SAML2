@@ -272,6 +272,11 @@ sub metadata {
                                 { Binding => 'urn:oasis:names:tc:SAML:2.0:bindings:SOAP',
                                   Location  => $self->url . '/saml/slo-soap' },
                         ),
+                        $x->SingleLogoutService(
+                                $md,
+                                { Binding => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
+                                  Location  => $self->url . '/saml/sls-redirect-response' },
+                        ),
                         $x->AssertionConsumerService(
                                 $md,
                                 { Binding => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST',
