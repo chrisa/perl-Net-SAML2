@@ -1,4 +1,5 @@
-package Saml2Test;
+package # PAUSE hide
+     Saml2Test;
 use strict;
 use warnings;
 

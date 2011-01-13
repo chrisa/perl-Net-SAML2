@@ -1,4 +1,5 @@
-package XML::Sig;
+package # PAUSE hide
+     XML::Sig;
 
 # use 'our' on v5.6.0
 use vars qw($VERSION @EXPORT_OK %EXPORT_TAGS $DEBUG);

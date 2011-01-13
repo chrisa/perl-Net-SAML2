@@ -8,7 +8,6 @@ use inc::Module::Install 0.91;
 name 'Net-SAML2';
 all_from 'lib/Net/SAML2.pm';
 
-requires 'XML::Sig';
 requires 'XML::XPath';
 requires 'XML::Generator';
 requires 'Crypt::OpenSSL::RSA';
