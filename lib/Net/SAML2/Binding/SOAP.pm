@@ -22,7 +22,7 @@ Net::SAML2::Binding::Artifact - SOAP binding for SAML2
 
 =cut
 
-use XML::Sig;
+use Net::SAML2::XML::Sig;
 use XML::XPath;
 use LWP::UserAgent;
 use HTTP::Request::Common;
@@ -90,7 +90,7 @@ sub handle_response {
         my ($self, $response) = @_;
 
         # verify the response
-        my $x = XML::Sig->new({ x509 => 1, cert_text => $self->idp_cert });
+        my $x = Net::SAML2::XML::Sig->new({ x509 => 1, cert_text => $self->idp_cert });
         my $ret = $x->verify($response);
         die "bad SOAP response" unless $ret;
 
@@ -129,7 +129,7 @@ sub handle_request {
         my $saml = $parser->findnodes_as_string('/soap-env:Envelope/soap-env:Body/*');
 
         if (defined $saml) {
-                my $x = XML::Sig->new({ x509 => 1, cert_text => $self->idp_cert });
+                my $x = Net::SAML2::XML::Sig->new({ x509 => 1, cert_text => $self->idp_cert });
                 my $ret = $x->verify($saml);
                 die "bad signature" unless $ret;
 
@@ -155,7 +155,7 @@ sub create_soap_envelope {
         my ($self, $message) = @_;
 
         # sign the message
-        my $sig = XML::Sig->new({ 
+        my $sig = Net::SAML2::XML::Sig->new({ 
                 x509 => 1,
                 key  => $self->key,
                 cert => $self->cert,

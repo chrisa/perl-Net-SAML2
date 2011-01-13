@@ -11,4 +11,9 @@ Major dependencies:
  * Crypt::OpenSSL::VerifyX509
 
 This distribution is currently shipping a modified version of
-XML::Sig, (c) Byrne Reese <byrne@majordojo.com>. 
+XML::Sig, (c) Byrne Reese <byrne@majordojo.com>, as
+Net::SAML2::XML::Sig.
+
+Those modifications are available here:
+
+  https://github.com/chrisa/perl-XML-Sig

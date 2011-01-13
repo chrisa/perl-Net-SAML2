@@ -27,6 +27,13 @@ requires 'MooseX::Types::URI';
 requires 'MooseX::Types::Common';
 requires 'MooseX::Types::DateTime';
 
+# XML::Sig's deps
+requires 'Class::Accessor';
+requires 'Digest::SHA1';
+requires 'Crypt::OpenSSL::Bignum';
+requires 'Crypt::OpenSSL::DSA';
+requires 'XML::CanonicalizeXML';
+
 author_requires 'Test::NoTabs';
 author_requires 'Test::Pod' => '1.14';
 author_requires 'Test::Pod::Coverage' => '1.04';

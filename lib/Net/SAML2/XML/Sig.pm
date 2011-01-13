@@ -1,5 +1,4 @@
-package # PAUSE hide
-     XML::Sig;
+package Net::SAML2::XML::Sig;
 
 # use 'our' on v5.6.0
 use vars qw($VERSION @EXPORT_OK %EXPORT_TAGS $DEBUG);
@@ -8,7 +7,7 @@ $DEBUG = 0;
 $VERSION = '0.23';
 
 use base qw(Class::Accessor);
-XML::Sig->mk_accessors(qw(canonicalizer key));
+Net::SAML2::XML::Sig->mk_accessors(qw(canonicalizer key));
 
 # We are exporting functions
 use base qw/Exporter/;

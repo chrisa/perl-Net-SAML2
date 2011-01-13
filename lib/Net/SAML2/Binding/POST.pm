@@ -17,7 +17,7 @@ Net::SAML2::Binding::POST - HTTP POST binding for SAML2
 
 =cut
 
-use XML::Sig;
+use Net::SAML2::XML::Sig;
 use MIME::Base64 qw/ decode_base64 /;
 use Crypt::OpenSSL::VerifyX509;
 
@@ -43,7 +43,7 @@ sub handle_response {
 
         # unpack and check the signature
         my $xml = decode_base64($response);
-        my $x = XML::Sig->new({ x509 => 1 });
+        my $x = Net::SAML2::XML::Sig->new({ x509 => 1 });
         my $ret = $x->verify($xml);
         die "signature check failed" unless $ret;
 
