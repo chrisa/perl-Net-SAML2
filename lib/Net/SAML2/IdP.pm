@@ -91,7 +91,21 @@ sub new_from_xml {
 
         for my $key ($xpath->findnodes('//md:EntityDescriptor/md:IDPSSODescriptor/md:KeyDescriptor')) {
                 my $use = $key->getAttribute('use');
-                my ($text) = $key->findvalue('ds:KeyInfo/ds:X509Data/ds:X509Certificate') =~ /^\s+(.+?)\s+$/s;
+                my ($text) = $key->findvalue('ds:KeyInfo/ds:X509Data/ds:X509Certificate') =~ /^\s*(.+?)\s*$/s;
+
+                # rewrap the base64 data from the metadata; it may not
+                # be wrapped at 64 characters as PEM requires
+                $text =~ s/\n//g;
+
+                my @lines;
+                while (length $text > 64) {
+                        push @lines, substr $text, 0, 64, '';
+                }
+                push @lines, $text;
+
+                $text = join "\n", @lines;
+                
+                # form a PEM certificate
                 $data->{Cert}->{$use} = sprintf("-----BEGIN CERTIFICATE-----\n%s\n-----END CERTIFICATE-----\n", $text);
         }
 
