@@ -36,6 +36,7 @@ has 'sso_urls' => (isa => HashRef[Str], is => 'ro', required => 1);
 has 'slo_urls' => (isa => HashRef[Str], is => 'ro', required => 1);
 has 'art_urls' => (isa => HashRef[Str], is => 'ro', required => 1);
 has 'certs'    => (isa => HashRef[Str], is => 'ro', required => 1);
+has 'formats'  => (isa => HashRef[Str], is => 'ro', required => 1);
 
 =head2 new_from_url( url => $url, cacert => $cacert )
 
@@ -89,6 +90,13 @@ sub new_from_xml {
         $data->{Art}->{$binding} = $art->getAttribute('Location');
     }
 
+    for my $format ($xpath->findnodes('//md:EntityDescriptor/md:IDPSSODescriptor/md:NameIDFormat')) {
+        $format = $format->string_value;
+        my ($short_format) = $format =~ /urn:oasis:names:tc:SAML:(?:2.0|1.1):nameid-format:(.*)$/;
+        if (defined $short_format) {
+            $data->{NameIDFormat}->{$short_format} = $format;
+        }
+    }
 
     for my $key ($xpath->findnodes('//md:EntityDescriptor/md:IDPSSODescriptor/md:KeyDescriptor')) {
         my $use = $key->getAttribute('use');
@@ -116,6 +124,7 @@ sub new_from_xml {
         slo_urls => $data->{SLO},
         art_urls => $data->{Art},
         certs    => $data->{Cert},
+        formats  => $data->{NameIDFormat},
         cacert   => $args{cacert},
     );
 
@@ -203,6 +212,22 @@ sub binding {
     return;
 }
 
+=head2 format($short_name)
+
+Returns the full NameID Format URI for the given short name. Uses data
+from the IdP metadata, and returns undef if the requested short name
+is not advertised by the IdP.
+
+=cut
+
+sub format {
+    my ($self, $short_name) = @_;
+
+    if (defined $short_name && exists $self->formats->{$short_name}) {
+        return $self->formats->{$short_name};
+    }
+    
+    return;
 }
 
-1;
+__PACKAGE__->meta->make_immutable;
