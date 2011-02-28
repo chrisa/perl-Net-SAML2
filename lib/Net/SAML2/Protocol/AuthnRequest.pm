@@ -32,8 +32,8 @@ Arguments:
 
 =cut
 
-has 'issuer'      => (isa => Uri, is => 'ro', required => 1, coerce => 1);
-has 'destination' => (isa => Uri, is => 'ro', required => 1, coerce => 1);
+has 'issuer'        => (isa => Uri, is => 'ro', required => 1, coerce => 1);
+has 'destination'   => (isa => Uri, is => 'ro', required => 1, coerce => 1);
 
 =head2 as_xml()
 
@@ -42,31 +42,31 @@ Returns the AuthnRequest as XML.
 =cut
 
 sub as_xml {
-        my ($self) = @_;
+    my ($self) = @_;
 
-        my $x = XML::Generator->new(':pretty');
-        my $saml  = ['saml' => 'urn:oasis:names:tc:SAML:2.0:assertion'];
-        my $samlp = ['samlp' => 'urn:oasis:names:tc:SAML:2.0:protocol'];
+    my $x = XML::Generator->new(':pretty');
+    my $saml  = ['saml' => 'urn:oasis:names:tc:SAML:2.0:assertion'];
+    my $samlp = ['samlp' => 'urn:oasis:names:tc:SAML:2.0:protocol'];
 
-        $x->xml(
-                $x->AuthnRequest(
-                        $samlp,
-                        { Destination => $self->destination,
-                          ID => $self->id,
-                          IssueInstant => $self->issue_instant,
-                          ProviderName => "My SP's human readable name.",
-                          Version => '2.0' },
-                        $x->Issuer(
-                                $saml,
-                                $self->issuer,
-                        ),
-                        $x->NameIDPolicy(
-                                $samlp,
-                                { AllowCreate => '1',
-                                  Format => 'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent' },
-                        )
-                )
-        );
+    $x->xml(
+        $x->AuthnRequest(
+            $samlp,
+            { Destination => $self->destination,
+              ID => $self->id,
+              IssueInstant => $self->issue_instant,
+              ProviderName => "My SP's human readable name.",
+              Version => '2.0' },
+            $x->Issuer(
+                $saml,
+                $self->issuer,
+            ),
+            $x->NameIDPolicy(
+                $samlp,
+                { AllowCreate => '1',
+                  Format => 'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent' },
+            )
+        )
+    );
 }
 
 1;

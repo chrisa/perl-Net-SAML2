@@ -46,30 +46,30 @@ Returns the ArtifactResolve request as XML.
 =cut
 
 sub as_xml {
-        my ($self) = @_;
+    my ($self) = @_;
 
-        my $x = XML::Generator->new(':pretty');
-        my $saml  = ['saml' => 'urn:oasis:names:tc:SAML:2.0:assertion'];
-        my $samlp = ['samlp' => 'urn:oasis:names:tc:SAML:2.0:protocol'];
+    my $x = XML::Generator->new(':pretty');
+    my $saml  = ['saml' => 'urn:oasis:names:tc:SAML:2.0:assertion'];
+    my $samlp = ['samlp' => 'urn:oasis:names:tc:SAML:2.0:protocol'];
 
-        $x->xml(
-                $x->ArtifactResolve(
-                        $samlp,
-                        { ID => $self->id,
-                          IssueInstant => $self->issue_instant,
-                          Destination => $self->destination,
-                          ProviderName => "My SP's human readable name.",
-                          Version => '2.0' },
-                        $x->Issuer(
-                                $saml,
-                                $self->issuer,
-                        ),
-                        $x->Artifact(
-                                $samlp,
-                                $self->artifact,
-                        ),
-                )
-        );
+    $x->xml(
+        $x->ArtifactResolve(
+            $samlp,
+            { ID => $self->id,
+              IssueInstant => $self->issue_instant,
+              Destination => $self->destination,
+              ProviderName => "My SP's human readable name.",
+              Version => '2.0' },
+            $x->Issuer(
+                $saml,
+                $self->issuer,
+            ),
+            $x->Artifact(
+                $samlp,
+                $self->artifact,
+            ),
+        )
+    );
 }
 
 1;

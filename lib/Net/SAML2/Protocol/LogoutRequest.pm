@@ -45,21 +45,21 @@ Create a LogoutRequest object from the given XML.
 =cut
 
 sub new_from_xml {
-        my ($class, %args) = @_;
+    my ($class, %args) = @_;
 
-        my $xpath = XML::XPath->new( xml => $args{xml} );
-        $xpath->set_namespace('saml', 'urn:oasis:names:tc:SAML:2.0:assertion');
-        $xpath->set_namespace('samlp', 'urn:oasis:names:tc:SAML:2.0:protocol');
+    my $xpath = XML::XPath->new( xml => $args{xml} );
+    $xpath->set_namespace('saml', 'urn:oasis:names:tc:SAML:2.0:assertion');
+    $xpath->set_namespace('samlp', 'urn:oasis:names:tc:SAML:2.0:protocol');
 
-        my $self = $class->new(
-                id          => $xpath->findvalue('/samlp:LogoutRequest/@ID')->value,
-                session     => $xpath->findvalue('/samlp:LogoutRequest/samlp:SessionIndex')->value,
-                issuer      => $xpath->findvalue('/samlp:LogoutRequest/saml:Issuer')->value,
-                nameid      => $xpath->findvalue('/samlp:LogoutRequest/saml:NameID')->value,
-                destination => $xpath->findvalue('/samlp:LogoutRequest/saml:NameID/@NameQualifier')->value,
-        );
+    my $self = $class->new(
+        id          => $xpath->findvalue('/samlp:LogoutRequest/@ID')->value,
+        session     => $xpath->findvalue('/samlp:LogoutRequest/samlp:SessionIndex')->value,
+        issuer      => $xpath->findvalue('/samlp:LogoutRequest/saml:Issuer')->value,
+        nameid      => $xpath->findvalue('/samlp:LogoutRequest/saml:NameID')->value,
+        destination => $xpath->findvalue('/samlp:LogoutRequest/saml:NameID/@NameQualifier')->value,
+    );
 
-        return $self;
+    return $self;
 }
 
 =head2 as_xml()
@@ -69,35 +69,35 @@ Returns the LogoutRequest as XML.
 =cut
 
 sub as_xml {
-        my ($self) = @_;
+    my ($self) = @_;
 
-        my $x = XML::Generator->new(':pretty');
-        my $saml  = ['saml' => 'urn:oasis:names:tc:SAML:2.0:assertion'];
-        my $samlp = ['samlp' => 'urn:oasis:names:tc:SAML:2.0:protocol'];
+    my $x = XML::Generator->new(':pretty');
+    my $saml  = ['saml' => 'urn:oasis:names:tc:SAML:2.0:assertion'];
+    my $samlp = ['samlp' => 'urn:oasis:names:tc:SAML:2.0:protocol'];
 
-        $x->xml(
-                $x->LogoutRequest(
-                        $samlp,
-                        { ID => $self->id,
-                          IssueInstant => $self->issue_instant, 
-                          Version => '2.0' },
-                        $x->Issuer(
-                                $saml,
-                                $self->issuer,
-                        ),
-                        $x->NameID(
-                                $saml,
-                                { Format => 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
-                                  NameQualifier => $self->destination,
-                                  SPNameQualifier => $self->issuer },
-                                $self->nameid,
-                        ),
-                        $x->SessionIndex(
-                                $samlp,
-                                $self->session,
-                        ),
-                )
-        );
+    $x->xml(
+        $x->LogoutRequest(
+            $samlp,
+            { ID => $self->id,
+              IssueInstant => $self->issue_instant, 
+              Version => '2.0' },
+            $x->Issuer(
+                $saml,
+                $self->issuer,
+            ),
+            $x->NameID(
+                $saml,
+                { Format => 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
+                  NameQualifier => $self->destination,
+                  SPNameQualifier => $self->issuer },
+                $self->nameid,
+            ),
+            $x->SessionIndex(
+                $samlp,
+                $self->session,
+            ),
+        )
+    );
 }
 
 __PACKAGE__->meta->make_immutable;

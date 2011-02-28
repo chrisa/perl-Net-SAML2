@@ -45,22 +45,22 @@ Create a LogoutResponse object from the given XML.
 =cut
 
 sub new_from_xml {
-        my ($class, %args) = @_;
+    my ($class, %args) = @_;
      
-        my $xpath = XML::XPath->new( xml => $args{xml} );
-        $xpath->set_namespace('saml', 'urn:oasis:names:tc:SAML:2.0:assertion');
-        $xpath->set_namespace('samlp', 'urn:oasis:names:tc:SAML:2.0:protocol');
+    my $xpath = XML::XPath->new( xml => $args{xml} );
+    $xpath->set_namespace('saml', 'urn:oasis:names:tc:SAML:2.0:assertion');
+    $xpath->set_namespace('samlp', 'urn:oasis:names:tc:SAML:2.0:protocol');
 
-        my $self = $class->new(
-                id          => $xpath->findvalue('/samlp:LogoutResponse/@ID')->value,
-                response_to => $xpath->findvalue('/samlp:LogoutResponse/@InResponseTo')->value,
-                destination => $xpath->findvalue('/samlp:LogoutResponse/@Destination')->value,
-                session     => $xpath->findvalue('/samlp:LogoutResponse/samlp:SessionIndex')->value,
-                issuer      => $xpath->findvalue('/samlp:LogoutResponse/saml:Issuer')->value,
-                status      => $xpath->findvalue('/samlp:LogoutResponse/samlp:Status/samlp:StatusCode/@Value')->value,
-        );
+    my $self = $class->new(
+        id          => $xpath->findvalue('/samlp:LogoutResponse/@ID')->value,
+        response_to => $xpath->findvalue('/samlp:LogoutResponse/@InResponseTo')->value,
+        destination => $xpath->findvalue('/samlp:LogoutResponse/@Destination')->value,
+        session     => $xpath->findvalue('/samlp:LogoutResponse/samlp:SessionIndex')->value,
+        issuer      => $xpath->findvalue('/samlp:LogoutResponse/saml:Issuer')->value,
+        status      => $xpath->findvalue('/samlp:LogoutResponse/samlp:Status/samlp:StatusCode/@Value')->value,
+    );
 
-        return $self;
+    return $self;
 }
 
 =head2 as_xml()
@@ -70,33 +70,33 @@ Returns the LogoutResponse as XML.
 =cut
 
 sub as_xml {
-        my ($self) = @_;
+    my ($self) = @_;
 
-        my $x = XML::Generator->new(':pretty');
-        my $saml  = ['saml' => 'urn:oasis:names:tc:SAML:2.0:assertion'];
-        my $samlp = ['samlp' => 'urn:oasis:names:tc:SAML:2.0:protocol'];
+    my $x = XML::Generator->new(':pretty');
+    my $saml  = ['saml' => 'urn:oasis:names:tc:SAML:2.0:assertion'];
+    my $samlp = ['samlp' => 'urn:oasis:names:tc:SAML:2.0:protocol'];
 
-        $x->xml(
-                $x->LogoutResponse(
-                        $samlp,
-                        { ID => $self->id,
-                          Version => '2.0',
-                          IssueInstant => $self->issue_instant,
-                          Destination => $self->destination,
-                          InResponseTo => $self->response_to },
-                        $x->Issuer(
-                                $saml,
-                                $self->issuer,
-                        ),
-                        $x->Status(
-                                $samlp,
-                                $x->StatusCode(
-                                        $samlp,
-                                        { Value => $self->status },
-                                )
-                        )
+    $x->xml(
+        $x->LogoutResponse(
+            $samlp,
+            { ID => $self->id,
+              Version => '2.0',
+              IssueInstant => $self->issue_instant,
+              Destination => $self->destination,
+              InResponseTo => $self->response_to },
+            $x->Issuer(
+                $saml,
+                $self->issuer,
+            ),
+            $x->Status(
+                $samlp,
+                $x->StatusCode(
+                    $samlp,
+                    { Value => $self->status },
                 )
-        );
+            )
+        )
+    );
 }
 
 =head2 success
@@ -106,9 +106,9 @@ Returns true if the Response's status is Success.
 =cut
 
 sub success {
-        my ($self) = @_;
-        return 1 if $self->status eq $self->status_uri('success');
-        return 0;
+    my ($self) = @_;
+    return 1 if $self->status eq $self->status_uri('success');
+    return 0;
 }
 
 1;

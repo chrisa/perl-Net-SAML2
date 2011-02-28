@@ -39,36 +39,36 @@ given XML to find the attributes, session and nameid.
 =cut
 
 sub new_from_xml { 
-        my ($class, %args) = @_;
+    my ($class, %args) = @_;
 
-        my $xpath = XML::XPath->new( xml => $args{xml} );
-        $xpath->set_namespace('saml', 'urn:oasis:names:tc:SAML:2.0:assertion');
+    my $xpath = XML::XPath->new( xml => $args{xml} );
+    $xpath->set_namespace('saml', 'urn:oasis:names:tc:SAML:2.0:assertion');
 
-        my $attributes = {};
-        for my $node ($xpath->findnodes('//saml:Assertion/saml:AttributeStatement/saml:Attribute')) {
-                my @values = $node->findnodes('saml:AttributeValue');
-                $attributes->{$node->getAttribute('Name')} = [
-                        map { $_->string_value } @values
-                ];
-        }
+    my $attributes = {};
+    for my $node ($xpath->findnodes('//saml:Assertion/saml:AttributeStatement/saml:Attribute')) {
+        my @values = $node->findnodes('saml:AttributeValue');
+        $attributes->{$node->getAttribute('Name')} = [
+            map { $_->string_value } @values
+        ];
+    }
         
-        my $not_before = DateTime::Format::XSD->parse_datetime(
-                $xpath->findvalue('//saml:Conditions/@NotBefore')->value
-        );
-        my $not_after =  DateTime::Format::XSD->parse_datetime(
-                $xpath->findvalue('//saml:Conditions/@NotOnOrAfter')->value
-        );
+    my $not_before = DateTime::Format::XSD->parse_datetime(
+        $xpath->findvalue('//saml:Conditions/@NotBefore')->value
+    );
+    my $not_after = DateTime::Format::XSD->parse_datetime(
+        $xpath->findvalue('//saml:Conditions/@NotOnOrAfter')->value
+    );
 
-        my $self = $class->new(
-                attributes => $attributes,
-                session    => $xpath->findvalue('//saml:AuthnStatement/@SessionIndex')->value,
-                nameid     => $xpath->findvalue('//saml:Subject/saml:NameID')->value,
-                audience   => $xpath->findvalue('//saml:Conditions/saml:AudienceRestriction/saml:Audience')->value,
-                not_before => $not_before,
-                not_after  => $not_after,
-        );
+    my $self = $class->new(
+        attributes     => $attributes,
+        session        => $xpath->findvalue('//saml:AuthnStatement/@SessionIndex')->value,
+        nameid         => $xpath->findvalue('//saml:Subject/saml:NameID')->value,
+        audience       => $xpath->findvalue('//saml:Conditions/saml:AudienceRestriction/saml:Audience')->value,
+        not_before     => $not_before,
+        not_after      => $not_after,
+    );
         
-        return $self;
+    return $self;
 }
 
 =head2 name
@@ -78,8 +78,8 @@ Returns the CN attribute, if provided.
 =cut
 
 sub name {
-        my ($self) = @_;
-        return $self->attributes->{CN}->[0];
+    my ($self) = @_;
+    return $self->attributes->{CN}->[0];
 }
 
 =head2 valid( $audience )
@@ -92,19 +92,19 @@ Assertions validity period as specified in its Conditions element.
 =cut
 
 sub valid {
-        my ($self, $audience) = @_;
+    my ($self, $audience) = @_;
 
-        return 0 unless defined $audience;
-        return 0 unless ($audience eq $self->audience);
+    return 0 unless defined $audience;
+    return 0 unless ($audience eq $self->audience);
 
-        my $now = DateTime::->now;
+    my $now = DateTime::->now;
         
-        # not_before is "NotBefore" element - exact match is ok
-        # not_after is "NotOnOrAfter" element - exact match is *not* ok
-        return 0 unless DateTime::->compare($now, $self->not_before) > -1;
-        return 0 unless DateTime::->compare($self->not_after, $now) > 0;
+    # not_before is "NotBefore" element - exact match is ok
+    # not_after is "NotOnOrAfter" element - exact match is *not* ok
+    return 0 unless DateTime::->compare($now, $self->not_before) > -1;
+    return 0 unless DateTime::->compare($self->not_after, $now) > 0;
 
-        return 1;
+    return 1;
 }
 
 1;

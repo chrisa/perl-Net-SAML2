@@ -51,14 +51,14 @@ has 'org_contact'      => (isa => Str, is => 'ro', required => 1);
 has '_cert_text' => (isa => Str, is => 'rw', required => 0);
 
 sub BUILD {
-        my ($self) = @_;
+    my ($self) = @_;
 
-        my $cert = Crypt::OpenSSL::X509->new_from_file($self->cert);
-        my $text = $cert->as_string;
-        $text =~ s/-----[^-]*-----//gm;
-        $self->_cert_text($text);
+    my $cert = Crypt::OpenSSL::X509->new_from_file($self->cert);
+    my $text = $cert->as_string;
+    $text =~ s/-----[^-]*-----//gm;
+    $self->_cert_text($text);
         
-        return $self;
+    return $self;
 }
 
 =head2 authn_request($destination)
@@ -69,15 +69,15 @@ given destination, which should be the identity URI of the IdP.
 =cut
 
 sub authn_request {
-        my ($self, $destination) = @_;
+    my ($self, $destination) = @_;
         
-        my $authnreq = Net::SAML2::Protocol::AuthnRequest->new(
-                issueinstant => DateTime->now,
-                issuer       => $self->id,
-                destination  => $destination,
-        );
+    my $authnreq = Net::SAML2::Protocol::AuthnRequest->new(
+        issueinstant  => DateTime->now,
+        issuer        => $self->id,
+        destination   => $destination,
+    );
         
-        return $authnreq;
+    return $authnreq;
 }
 
 =head2 logout_request($destination, $nameid, $session)
@@ -90,16 +90,16 @@ Also requires the nameid and session to be logged out.
 =cut
 
 sub logout_request {
-        my ($self, $destination, $nameid, $session) = @_;
+    my ($self, $destination, $nameid, $session) = @_;
 
-        my $logout_req = Net::SAML2::Protocol::LogoutRequest->new(
-                issuer      => $self->id,
-                destination => $destination,
-                nameid      => $nameid,
-                session     => $session,
-        );
+    my $logout_req = Net::SAML2::Protocol::LogoutRequest->new(
+        issuer      => $self->id,
+        destination => $destination,
+        nameid      => $nameid,
+        session     => $session,
+    );
 
-        return $logout_req;
+    return $logout_req;
 }
 
 =head2 logout_response($destination, $status, $response_to)
@@ -113,17 +113,17 @@ LogoutRequest.
 =cut
 
 sub logout_response {
-        my ($self, $destination, $status, $response_to) = @_;
+    my ($self, $destination, $status, $response_to) = @_;
 
-        my $status_uri = Net::SAML2::Protocol::LogoutResponse->status_uri($status);
-        my $logout_req = Net::SAML2::Protocol::LogoutResponse->new(
-                issuer      => $self->id,
-                destination => $destination,
-                status      => $status_uri,
-                response_to => $response_to,
-        );
+    my $status_uri = Net::SAML2::Protocol::LogoutResponse->status_uri($status);
+    my $logout_req = Net::SAML2::Protocol::LogoutResponse->new(
+        issuer      => $self->id,
+        destination => $destination,
+        status      => $status_uri,
+        response_to => $response_to,
+    );
 
-        return $logout_req;
+    return $logout_req;
 }
 
 =head2 artifact_request($destination, $artifact)
@@ -135,16 +135,16 @@ IdP.
 =cut
 
 sub artifact_request {
-        my ($self, $destination, $artifact) = @_;
+    my ($self, $destination, $artifact) = @_;
         
-        my $artifact_request = Net::SAML2::Protocol::ArtifactResolve->new(
-                issuer       => $self->id,
-                destination  => $destination,
-                artifact     => $artifact,
-                issueinstant => DateTime->now,
-        );
+    my $artifact_request = Net::SAML2::Protocol::ArtifactResolve->new(
+        issuer       => $self->id,
+        destination  => $destination,
+        artifact     => $artifact,
+        issueinstant => DateTime->now,
+    );
         
-        return $artifact_request;
+    return $artifact_request;
 }
 
 =head2 sso_redirect_binding($idp, $param)
@@ -156,16 +156,16 @@ parameter involved - typically SAMLRequest.
 =cut
 
 sub sso_redirect_binding {
-        my ($self, $idp, $param) = @_;
+    my ($self, $idp, $param) = @_;
         
-        my $redirect = Net::SAML2::Binding::Redirect->new(
-                url   => $idp->sso_url('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'),
-                cert  => $idp->cert('signing'),
-                key   => $self->cert,
-                param => $param,
-        );
+    my $redirect = Net::SAML2::Binding::Redirect->new(
+        url   => $idp->sso_url('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'),
+        cert  => $idp->cert('signing'),
+        key   => $self->cert,
+        param => $param,
+    );
         
-        return $redirect;
+    return $redirect;
 }
 
 =head2 slo_redirect_binding
@@ -177,16 +177,16 @@ parameter involved - typically SAMLRequest or SAMLResponse.
 =cut
 
 sub slo_redirect_binding {
-        my ($self, $idp, $param) = @_;
+    my ($self, $idp, $param) = @_;
         
-        my $redirect = Net::SAML2::Binding::Redirect->new(
-                url   => $idp->slo_url('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'),
-                cert  => $idp->cert('signing'),
-                key   => $self->cert,
-                param => $param,
-        );
+    my $redirect = Net::SAML2::Binding::Redirect->new(
+        url   => $idp->slo_url('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'),
+        cert  => $idp->cert('signing'),
+        key   => $self->cert,
+        param => $param,
+    );
         
-        return $redirect;
+    return $redirect;
 }
 
 =head2 soap_binding
@@ -199,18 +199,18 @@ XXX UA
 =cut
 
 sub soap_binding {
-        my ($self, $ua, $idp_url, $idp_cert) = @_;
+    my ($self, $ua, $idp_url, $idp_cert) = @_;
 
-        my $soap = Net::SAML2::Binding::SOAP->new(
-                ua       => $ua,
-                key      => $self->cert,
-                cert     => $self->cert,
-                url      => $idp_url,
-                idp_cert => $idp_cert,
-                cacert   => $self->cacert,
-        );
+    my $soap = Net::SAML2::Binding::SOAP->new(
+        ua       => $ua,
+        key      => $self->cert,
+        cert     => $self->cert,
+        url      => $idp_url,
+        idp_cert => $idp_cert,
+        cacert   => $self->cacert,
+    );
         
-        return $soap;
+    return $soap;
 }
 
 =head2 post_binding
@@ -220,13 +220,13 @@ Returns a POST binding object for this SP.
 =cut
 
 sub post_binding {
-        my ($self) = @_;
+    my ($self) = @_;
         
-        my $post = Net::SAML2::Binding::POST->new(
-                cacert => $self->cacert,
-        );
+    my $post = Net::SAML2::Binding::POST->new(
+        cacert => $self->cacert,
+    );
         
-        return $post;
+    return $post;
 }
 
 =head2 metadata
@@ -236,97 +236,97 @@ Returns the metadata XML document for this SP.
 =cut
 
 sub metadata {
-        my ($self) = @_;
+    my ($self) = @_;
 
-        my $x = XML::Generator->new(':pretty', conformance => 'loose');
-        my $md = ['md' => 'urn:oasis:names:tc:SAML:2.0:metadata'];
-        my $ds = ['ds' => 'http://www.w3.org/2000/09/xmldsig#'];
+    my $x = XML::Generator->new(':pretty', conformance => 'loose');
+    my $md = ['md' => 'urn:oasis:names:tc:SAML:2.0:metadata'];
+    my $ds = ['ds' => 'http://www.w3.org/2000/09/xmldsig#'];
 
-        $x->EntityDescriptor(
+    $x->EntityDescriptor(
+        $md,
+        {
+            entityID => $self->id },
+        $x->SPSSODescriptor(
+            $md,
+            { AuthnRequestsSigned => '1',
+              WantAssertionsSigned => '1',
+              errorURL => $self->url . '/saml/error',
+              protocolSupportEnumeration => 'urn:oasis:names:tc:SAML:2.0:protocol' },
+            $x->KeyDescriptor(
                 $md,
                 {
-                        entityID => $self->id },
-                $x->SPSSODescriptor(
-                        $md,
-                        { AuthnRequestsSigned => '1',
-                          WantAssertionsSigned => '1',
-                          errorURL => $self->url . '/saml/error',
-                          protocolSupportEnumeration => 'urn:oasis:names:tc:SAML:2.0:protocol' },
-                        $x->KeyDescriptor(
-                                $md,
-                                {
-                                        use => 'signing' },
-                                $x->KeyInfo(
-                                        $ds,
-                                        $x->X509Data(
-                                                $ds,
-                                                $x->X509Certificate(
-                                                        $ds,
-                                                        $self->_cert_text,
-                                                )
-                                        )
-                                )
-                        ),
-                        $x->SingleLogoutService(
-                                $md,
-                                { Binding => 'urn:oasis:names:tc:SAML:2.0:bindings:SOAP',
-                                  Location  => $self->url . '/saml/slo-soap' },
-                        ),
-                        $x->SingleLogoutService(
-                                $md,
-                                { Binding => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
-                                  Location  => $self->url . '/saml/sls-redirect-response' },
-                        ),
-                        $x->AssertionConsumerService(
-                                $md,
-                                { Binding => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST',
-                                  Location => $self->url . '/saml/consumer-post',
-                                  index => '1',
-                                  isDefault => 'true' },
-                        ),
-                        $x->AssertionConsumerService(
-                                $md,
-                                { Binding => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact',
-                                  Location => $self->url . '/saml/consumer-artifact',
-                                  index => '2',
-                                  isDefault => 'false' },
-                        ),
-                ),
-                $x->Organization(
-                        $md,
-                        $x->OrganizationName(
-                                $md,
-                                {
-                                        'xml:lang' => 'en' },
-                                $self->org_name,
-                        ),
-                        $x->OrganizationDisplayName(
-                                $md,
-                                {
-                                        'xml:lang' => 'en' },
-                                $self->org_display_name,
-                        ),
-                        $x->OrganizationURL(
-                                $md,
-                                {
-                                        'xml:lang' => 'en' },
-                                $self->url
+                    use => 'signing' },
+                $x->KeyInfo(
+                    $ds,
+                    $x->X509Data(
+                        $ds,
+                        $x->X509Certificate(
+                            $ds,
+                            $self->_cert_text,
                         )
-                ),
-                $x->ContactPerson(
-                        $md,
-                        {
-                                contactType => 'other' },
-                        $x->Company(
-                                $md,
-                                $self->org_display_name,
-                        ),
-                        $x->EmailAddress(
-                                $md,
-                                $self->org_contact,
-                        ),
+                    )
                 )
-        );
+            ),
+            $x->SingleLogoutService(
+                $md,
+                { Binding => 'urn:oasis:names:tc:SAML:2.0:bindings:SOAP',
+                  Location  => $self->url . '/saml/slo-soap' },
+            ),
+            $x->SingleLogoutService(
+                $md,
+                { Binding => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
+                  Location  => $self->url . '/saml/sls-redirect-response' },
+            ),
+            $x->AssertionConsumerService(
+                $md,
+                { Binding => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST',
+                  Location => $self->url . '/saml/consumer-post',
+                  index => '1',
+                  isDefault => 'true' },
+            ),
+            $x->AssertionConsumerService(
+                $md,
+                { Binding => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Artifact',
+                  Location => $self->url . '/saml/consumer-artifact',
+                  index => '2',
+                  isDefault => 'false' },
+            ),
+        ),
+        $x->Organization(
+            $md,
+            $x->OrganizationName(
+                $md,
+                {
+                    'xml:lang' => 'en' },
+                $self->org_name,
+            ),
+            $x->OrganizationDisplayName(
+                $md,
+                {
+                    'xml:lang' => 'en' },
+                $self->org_display_name,
+            ),
+            $x->OrganizationURL(
+                $md,
+                {
+                    'xml:lang' => 'en' },
+                $self->url
+            )
+        ),
+        $x->ContactPerson(
+            $md,
+            {
+                contactType => 'other' },
+            $x->Company(
+                $md,
+                $self->org_display_name,
+            ),
+            $x->EmailAddress(
+                $md,
+                $self->org_contact,
+            ),
+        )
+    );
 }
 
-1;
+__PACKAGE__->meta->make_immutable;

@@ -22,18 +22,18 @@ has 'id'            => (isa => Str, is => 'ro', required => 1);
 has 'issue_instant' => (isa => Str, is => 'ro', required => 1);
 
 around 'BUILDARGS' => sub {
-        my $orig = shift;
-        my $class = shift;      
-        my %args = @_;
+    my $orig = shift;
+    my $class = shift;      
+    my %args = @_;
 
-        # random ID for this message
-        $args{id} ||= unpack 'H*', Crypt::OpenSSL::Random::random_pseudo_bytes(16);
+    # random ID for this message
+    $args{id} ||= unpack 'H*', Crypt::OpenSSL::Random::random_pseudo_bytes(16);
 
-        # IssueInstant in UTC
-        my $dt = DateTime->now( time_zone => 'UTC' );
-        $args{issue_instant} ||= $dt->strftime('%FT%TZ');
+    # IssueInstant in UTC
+    my $dt = DateTime->now( time_zone => 'UTC' );
+    $args{issue_instant} ||= $dt->strftime('%FT%TZ');
         
-        return \%args;
+    return \%args;
 };
 
 =head1 METHODS
@@ -45,19 +45,19 @@ Provides a mapping from short names for statuses to the full status URIs.
 =cut
 
 sub status_uri {
-        my ($self, $status) = @_;
+    my ($self, $status) = @_;
 
-        my $statuses = {
-                success   => 'urn:oasis:names:tc:SAML:2.0:status:Success',
-                requester => 'urn:oasis:names:tc:SAML:2.0:status:Requester',
-                responder => 'urn:oasis:names:tc:SAML:2.0:status:Responder',
-        };
+    my $statuses = {
+        success   => 'urn:oasis:names:tc:SAML:2.0:status:Success',
+        requester => 'urn:oasis:names:tc:SAML:2.0:status:Requester',
+        responder => 'urn:oasis:names:tc:SAML:2.0:status:Responder',
+    };
 
-        if (exists $statuses->{$status}) {
-                return $statuses->{$status};
-        }
+    if (exists $statuses->{$status}) {
+        return $statuses->{$status};
+    }
 
-        return;
+    return;
 }
 
 1;
