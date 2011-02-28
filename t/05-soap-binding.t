@@ -31,14 +31,16 @@ my $session = 'session-to-log-out';
 
 my $request = $sp->logout_request(
         $idp->entityid, $nameid, $session,
-)->as_xml;
+);
 ok($request);
+my $request_xml = $request->as_xml;
+ok($request_xml);
 
 my $ua = LWP::UserAgent->new; # not used
 my $soap = $sp->soap_binding($ua, $slo_url, $idp_cert);
 ok($soap);
 
-my $soap_req = $soap->create_soap_envelope($request);
+my $soap_req = $soap->create_soap_envelope($request_xml);
 ok($soap_req);
 
 my ($subject, $xml) = $soap->handle_request($soap_req);
@@ -49,6 +51,8 @@ my $soaped_request = Net::SAML2::Protocol::LogoutRequest->new_from_xml(
         xml => $xml
 );
 ok($soaped_request);
-ok($request eq $soaped_request->as_xml);
+isa_ok($soaped_request, 'Net::SAML2::Protocol::LogoutRequest');
+ok($soaped_request->session eq $request->session);
+ok($soaped_request->nameid eq $request->nameid);
 
 done_testing;
