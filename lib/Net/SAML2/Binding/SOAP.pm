@@ -193,4 +193,5 @@ SOAP
     return $soap;
 }
 
-1;
+__PACKAGE__->meta->make_immutable;
+

@@ -72,4 +72,4 @@ sub as_xml {
     );
 }
 
-1;
+__PACKAGE__->meta->make_immutable;

@@ -128,5 +128,4 @@ sub verify {
     return ($request, $relaystate);
 }
 
-1;
-        
+__PACKAGE__->meta->make_immutable;
