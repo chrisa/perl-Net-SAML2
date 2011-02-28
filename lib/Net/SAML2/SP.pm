@@ -69,12 +69,13 @@ given destination, which should be the identity URI of the IdP.
 =cut
 
 sub authn_request {
-    my ($self, $destination) = @_;
+    my ($self, $destination, $nameid_format) = @_;
         
     my $authnreq = Net::SAML2::Protocol::AuthnRequest->new(
         issueinstant  => DateTime->now,
         issuer        => $self->id,
         destination   => $destination,
+        nameid_format => $nameid_format,
     );
         
     return $authnreq;

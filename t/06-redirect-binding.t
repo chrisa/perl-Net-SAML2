@@ -25,7 +25,10 @@ ok($idp);
 
 my $sso_url = $idp->sso_url($idp->binding('redirect'));
 ok($sso_url);
-my $authnreq = $sp->authn_request($idp->entityid)->as_xml;
+my $authnreq = $sp->authn_request(
+    $idp->entityid,
+    $idp->format('persistent'),
+)->as_xml;
 ok($authnreq);
 
 my $redirect = $sp->sso_redirect_binding($idp, 'SAMLRequest');

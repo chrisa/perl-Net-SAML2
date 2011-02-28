@@ -2,6 +2,7 @@ package Net::SAML2::Protocol::AuthnRequest;
 use Moose;
 use MooseX::Types::Moose qw /Str /;
 use MooseX::Types::URI qw/ Uri /;
+use MooseX::Types::Common::String qw/ NonEmptySimpleStr /;
 
 with 'Net::SAML2::Role::ProtocolMessage';
 
@@ -34,6 +35,7 @@ Arguments:
 
 has 'issuer'        => (isa => Uri, is => 'ro', required => 1, coerce => 1);
 has 'destination'   => (isa => Uri, is => 'ro', required => 1, coerce => 1);
+has 'nameid_format' => (isa => NonEmptySimpleStr, is => 'ro', required => 1);
 
 =head2 as_xml()
 
@@ -63,10 +65,10 @@ sub as_xml {
             $x->NameIDPolicy(
                 $samlp,
                 { AllowCreate => '1',
-                  Format => 'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent' },
+                  Format => $self->nameid_format },
             )
         )
     );
 }
 
-1;
+__PACKAGE__->meta->make_immutable;

@@ -26,7 +26,10 @@ get '/' => sub {
 get '/login' => sub {
     my $idp = _idp();
     my $sp = _sp();
-    my $authnreq = $sp->authn_request($idp->entityid)->as_xml;
+    my $authnreq = $sp->authn_request(
+        $idp->entityid,
+        $idp->format('persistent'),
+    )->as_xml;
 	
     my $redirect = $sp->sso_redirect_binding($idp, 'SAMLRequest');
     my $url = $redirect->sign($authnreq);
