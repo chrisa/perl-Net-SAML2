@@ -47,7 +47,7 @@ get '/logout-redirect' => sub {
     my $sp = _sp();
 
     my $logoutreq = $sp->logout_request(
-        $idp->entityid, params->{nameid}, params->{session}
+        $idp->entityid, params->{nameid}, $idp->format, params->{session}
     )->as_xml;
 
     my $redirect = $sp->slo_redirect_binding($idp, 'SAMLRequest');
@@ -64,7 +64,7 @@ get '/logout-soap' => sub {
 
     my $sp = _sp();
     my $logoutreq = $sp->logout_request(
-        $idp->entityid, params->{nameid}, params->{session}
+        $idp->entityid, params->{nameid}, $idp->format, params->{session}
     )->as_xml;
 
     my $soap = Net::SAML2::Binding::SOAP->new(

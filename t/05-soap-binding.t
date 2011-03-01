@@ -30,7 +30,7 @@ my $nameid = 'user-to-log-out';
 my $session = 'session-to-log-out';
 
 my $request = $sp->logout_request(
-        $idp->entityid, $nameid, $session,
+        $idp->entityid, $nameid, $idp->format('persistent'), $session,
 );
 ok($request);
 my $request_xml = $request->as_xml;

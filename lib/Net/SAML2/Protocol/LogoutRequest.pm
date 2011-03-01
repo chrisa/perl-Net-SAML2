@@ -28,15 +28,17 @@ Arguments:
 
  * session - the session to log out
  * nameid - the NameID of the user to log out
+ * nameid_format - the NameIDFormat to specify
  * issuer - the SP's identity URI
  * destination -  the IdP's identity URI
 
 =cut
 
-has 'session'     => (isa => NonEmptySimpleStr, is => 'ro', required => 1);
-has 'nameid'      => (isa => NonEmptySimpleStr, is => 'ro', required => 1);
-has 'issuer'      => (isa => Uri, is => 'ro', required => 1, coerce => 1);
-has 'destination' => (isa => Uri, is => 'ro', required => 1, coerce => 1);
+has 'session'       => (isa => NonEmptySimpleStr, is => 'ro', required => 1);
+has 'nameid'        => (isa => NonEmptySimpleStr, is => 'ro', required => 1);
+has 'nameid_format' => (isa => NonEmptySimpleStr, is => 'ro', required => 1);
+has 'issuer'        => (isa => Uri, is => 'ro', required => 1, coerce => 1);
+has 'destination'   => (isa => Uri, is => 'ro', required => 1, coerce => 1);
 
 =head2 new_from_xml
 
@@ -52,11 +54,12 @@ sub new_from_xml {
     $xpath->set_namespace('samlp', 'urn:oasis:names:tc:SAML:2.0:protocol');
 
     my $self = $class->new(
-        id          => $xpath->findvalue('/samlp:LogoutRequest/@ID')->value,
-        session     => $xpath->findvalue('/samlp:LogoutRequest/samlp:SessionIndex')->value,
-        issuer      => $xpath->findvalue('/samlp:LogoutRequest/saml:Issuer')->value,
-        nameid      => $xpath->findvalue('/samlp:LogoutRequest/saml:NameID')->value,
-        destination => $xpath->findvalue('/samlp:LogoutRequest/saml:NameID/@NameQualifier')->value,
+        id            => $xpath->findvalue('/samlp:LogoutRequest/@ID')->value,
+        session       => $xpath->findvalue('/samlp:LogoutRequest/samlp:SessionIndex')->value,
+        issuer        => $xpath->findvalue('/samlp:LogoutRequest/saml:Issuer')->value,
+        nameid        => $xpath->findvalue('/samlp:LogoutRequest/saml:NameID')->value,
+        nameid_format => $xpath->findvalue('/samlp:LogoutRequest/saml:NameID/@Format')->value,
+        destination   => $xpath->findvalue('/samlp:LogoutRequest/saml:NameID/@NameQualifier')->value,
     );
 
     return $self;
@@ -87,7 +90,7 @@ sub as_xml {
             ),
             $x->NameID(
                 $saml,
-                { Format => 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
+                { Format => $self->nameid_format,
                   NameQualifier => $self->destination,
                   SPNameQualifier => $self->issuer },
                 $self->nameid,
