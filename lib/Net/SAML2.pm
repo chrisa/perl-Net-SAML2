@@ -4,7 +4,7 @@ use warnings;
 
 require 5.008_001;
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 $VERSION = eval $VERSION;
 
 =head1 NAME
@@ -93,7 +93,7 @@ The following copyright notice applies to all the files provided in
 this distribution, including binary files, unless explicitly noted
 otherwise.
 
-Copyright 2010 Venda Ltd.
+Copyright 2010, 2011 Venda Ltd.
 
 =head1 LICENCE
 
