@@ -1,6 +1,6 @@
 package Net::SAML2::IdP;
 use Moose;
-use MooseX::Types::Moose qw/ Str Object HashRef /;
+use MooseX::Types::Moose qw/ Str Object HashRef ArrayRef /;
 use MooseX::Types::URI qw/ Uri /;
 
 =head1 NAME
@@ -30,13 +30,14 @@ Constructor
 
 =cut
 
-has 'entityid' => (isa => Str, is => 'ro', required => 1);
-has 'cacert'   => (isa => Str, is => 'ro', required => 1);
-has 'sso_urls' => (isa => HashRef[Str], is => 'ro', required => 1);
-has 'slo_urls' => (isa => HashRef[Str], is => 'ro', required => 1);
-has 'art_urls' => (isa => HashRef[Str], is => 'ro', required => 1);
-has 'certs'    => (isa => HashRef[Str], is => 'ro', required => 1);
-has 'formats'  => (isa => HashRef[Str], is => 'ro', required => 1);
+has 'entityid'       => (isa => Str, is => 'ro', required => 1);
+has 'cacert'         => (isa => Str, is => 'ro', required => 1);
+has 'sso_urls'       => (isa => HashRef[Str], is => 'ro', required => 1);
+has 'slo_urls'       => (isa => HashRef[Str], is => 'ro', required => 1);
+has 'art_urls'       => (isa => HashRef[Str], is => 'ro', required => 1);
+has 'certs'          => (isa => HashRef[Str], is => 'ro', required => 1);
+has 'formats'        => (isa => HashRef[Str], is => 'ro', required => 1);
+has 'default_format' => (isa => Str, is => 'ro', required => 1);
 
 =head2 new_from_url( url => $url, cacert => $cacert )
 
@@ -95,6 +96,7 @@ sub new_from_xml {
         my ($short_format) = $format =~ /urn:oasis:names:tc:SAML:(?:2.0|1.1):nameid-format:(.*)$/;
         if (defined $short_format) {
             $data->{NameIDFormat}->{$short_format} = $format;
+            $data->{DefaultFormat} = $short_format unless exists $data->{DefaultFormat};
         }
     }
 
@@ -119,13 +121,14 @@ sub new_from_xml {
     }
         
     my $self = $class->new(
-        entityid => $xpath->findvalue('//md:EntityDescriptor/@entityID')->value,
-        sso_urls => $data->{SSO},
-        slo_urls => $data->{SLO},
-        art_urls => $data->{Art},
-        certs    => $data->{Cert},
-        formats  => $data->{NameIDFormat},
-        cacert   => $args{cacert},
+        entityid       => $xpath->findvalue('//md:EntityDescriptor/@entityID')->value,
+        sso_urls       => $data->{SSO},
+        slo_urls       => $data->{SLO},
+        art_urls       => $data->{Art},
+        certs          => $data->{Cert},
+        formats        => $data->{NameIDFormat},
+        default_format => $data->{DefaultFormat},
+        cacert         => $args{cacert},
     );
 
     return $self;
@@ -214,9 +217,12 @@ sub binding {
 
 =head2 format($short_name)
 
-Returns the full NameID Format URI for the given short name. Uses data
-from the IdP metadata, and returns undef if the requested short name
-is not advertised by the IdP.
+Returns the full NameID Format URI for the given short name.
+
+If no short name is provided, returns the URI for the default format,
+the one listed first by the IdP.
+
+If no NameID formats were advertised by the IdP, returns undef.
 
 =cut
 
@@ -226,8 +232,12 @@ sub format {
     if (defined $short_name && exists $self->formats->{$short_name}) {
         return $self->formats->{$short_name};
     }
-    
-    return;
+    elsif ($self->default_format) {
+        return $self->formats->{$self->default_format};
+    }
+    else {
+        return;
+    }
 }
 
 __PACKAGE__->meta->make_immutable;

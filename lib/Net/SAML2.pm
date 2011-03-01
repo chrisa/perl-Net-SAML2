@@ -19,8 +19,9 @@ Net::SAML2 - SAML bindings and protocol implementation
         my $sso_url = $idp->sso_url('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect');
         
         my $authnreq = Net::SAML2::Protocol::AuthnRequest->new(
-                issuer      => 'http://localhost:3000/metadata.xml',
-                destination => $sso_url,
+                issuer        => 'http://localhost:3000/metadata.xml',
+                destination   => $sso_url,
+                nameid_format => $idp->format('persistent'),
         )->as_xml;
 
         my $redirect = Net::SAML2::Binding::Redirect->new(

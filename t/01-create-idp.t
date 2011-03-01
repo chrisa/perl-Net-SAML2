@@ -64,4 +64,7 @@ ok($idp->art_url($idp->binding('soap')));
 ok($idp->cert('signing'));
 ok($idp->entityid eq 'http://sso.dev.venda.com/opensso');
 
+ok('urn:oasis:names:tc:SAML:2.0:nameid-format:transient' eq $idp->format('transient'));
+ok('urn:oasis:names:tc:SAML:2.0:nameid-format:persistent' eq $idp->format);
+
 done_testing;
