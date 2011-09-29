@@ -16,6 +16,7 @@ Net::SAML2::Protocol::AuthnRequest - SAML2 AuthnRequest object
     issueinstant => DateTime->now,
     issuer       => $self->{id},
     destination  => $destination,
+    nameid_format => 'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent', # or 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient'
   );
 
 =head1 METHODS
@@ -35,7 +36,8 @@ Arguments:
 
 has 'issuer'        => (isa => Uri, is => 'ro', required => 1, coerce => 1);
 has 'destination'   => (isa => Uri, is => 'ro', required => 1, coerce => 1);
-has 'nameid_format' => (isa => NonEmptySimpleStr, is => 'ro', required => 1);
+has 'nameid_format' => (isa => NonEmptySimpleStr, is => 'ro', required => 1, default => 'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent');
+has 'providername'  => (is => 'rw', required => 0, default => 'ProviderName');
 
 =head2 as_xml()
 
@@ -56,8 +58,13 @@ sub as_xml {
             { Destination => $self->destination,
               ID => $self->id,
               IssueInstant => $self->issue_instant,
-              ProviderName => "My SP's human readable name.",
-              Version => '2.0' },
+              ProviderName => $self->providername(),
+              Version => '2.0',
+#             AssertionConsumerServiceURL => 'http://localhost/saml/consumer_post',
+#             IsPassive => 'false',
+#             ProtocolBinding => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST',
+#             ForceAuthn => "true",
+            },
             $x->Issuer(
                 $saml,
                 $self->issuer,
@@ -66,9 +73,9 @@ sub as_xml {
                 $samlp,
                 { AllowCreate => '1',
                   Format => $self->nameid_format },
-            )
+            ),
         )
     );
 }
 
-__PACKAGE__->meta->make_immutable;
+1;
