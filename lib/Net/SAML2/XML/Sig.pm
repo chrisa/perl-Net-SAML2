@@ -114,10 +114,10 @@ sub verify {
 
     $self->{ parser } = XML::XPath->new( xml => $xml );
     $self->{ parser }->set_namespace('dsig', 'http://www.w3.org/2000/09/xmldsig#');
-    # TODO: Find a more elegant way to match /saml2p:Response/dsig:Signature
-    $self->{ parser }->set_namespace('saml2p', 'urn:oasis:names:tc:SAML:2.0:protocol');
+    # TODO: Find a more elegant way to match /samlp:Response/dsig:Signature
+    $self->{ parser }->set_namespace('samlp', 'urn:oasis:names:tc:SAML:2.0:protocol');
 
-    my $signature_nodeset = $self->{parser}->findnodes('/saml2p:Response/dsig:Signature');
+    my $signature_nodeset = $self->{parser}->findnodes('/samlp:Response/dsig:Signature');
     my $signature_node = $signature_nodeset->shift();
 
     my $value = $self->{parser}->findvalue('dsig:SignatureValue', $signature_node);
