@@ -114,11 +114,9 @@ sub verify {
 
     $self->{ parser } = XML::XPath->new( xml => $xml );
     $self->{ parser }->set_namespace('dsig', 'http://www.w3.org/2000/09/xmldsig#');
-    # TODO: Find a more elegant way to match /samlp:Response/dsig:Signature
-    $self->{ parser }->set_namespace('samlp', 'urn:oasis:names:tc:SAML:2.0:protocol');
+    $self->{ parser }->set_namespace('ec', 'http://www.w3.org/2001/10/xml-exc-c14n#');
 
-    my $signature_nodeset = $self->{parser}->findnodes('/samlp:Response/dsig:Signature');
-    my $signature_node = $signature_nodeset->shift();
+    my $signature_nodeset = $self->{parser}->findnodes('//dsig:Signature');
 
     my $value = $self->{parser}->findvalue('dsig:SignatureValue', $signature_node);
 
@@ -556,7 +554,7 @@ sub _signedinfo_xml {
     my $self = shift;
     my ($digest_xml) = @_;
 
-    return qq{<dsig:SignedInfo xmlns:dsig="http://www.w3.org/2000/09/xmldsig#" xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:xenc="http://www.w3.org/2001/04/xmlenc#">
+    return qq{<dsig:SignedInfo xmlns:dsig="http://www.w3.org/2000/09/xmldsig#" xmlns:xenc="http://www.w3.org/2001/04/xmlenc#">
                 <dsig:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315#WithComments" />
                 <dsig:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#$self->{key_type}-sha1" />
                 $digest_xml
