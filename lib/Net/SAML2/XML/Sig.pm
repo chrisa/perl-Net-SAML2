@@ -118,62 +118,76 @@ sub verify {
 
     my $signature_nodeset = $self->{parser}->findnodes('//dsig:Signature');
 
-    my $value = $self->{parser}->findvalue('dsig:SignatureValue', $signature_node);
+    while (my $signature_node = $signature_nodeset->shift()) {
 
-    my $signature = _trim($self->{parser}->findvalue('dsig:SignatureValue', $signature_node));
-    my $signed_info_node = $self->_get_node('dsig:SignedInfo', $signature_node);
+        my $value = $self->{parser}->findvalue('dsig:SignatureValue', $signature_node);
 
-    my $ns;
-    if (defined $signature_node && ref $signature_node) {
+        my $signature = _trim($self->{parser}->findvalue('dsig:SignatureValue', $signature_node));
+        my $signed_info_node = $self->_get_node('dsig:SignedInfo', $signature_node);
+
+        my $ns;
+        if (defined $signature_node && ref $signature_node) {
             $ns = $signature_node->getNamespaces->[0];
             $self->{dsig_prefix} = ($ns->getPrefix eq '#default') ? '' : $ns->getPrefix;
-    }
-    else {
+        }
+        else {
             die "no Signature node?";
-    }
+        }
     
-    if (scalar @{ $signed_info_node->getNamespaces } == 0) {
-        $signed_info_node->appendNamespace($ns);
-    }
+        if (scalar @{ $signed_info_node->getNamespaces } == 0) {
+            $signed_info_node->appendNamespace($ns);
+        }
     
-    my $signed_info = XML::XPath::XMLParser::as_string($signed_info_node);
-    my $signed_info_canon = $self->_canonicalize_xml( $signed_info );
+        my $signed_info = XML::XPath::XMLParser::as_string($signed_info_node);
+        my $signed_info_canon = $self->_canonicalize_xml( $signed_info );
 
-    if (defined $self->{cert_obj}) {
+        if (defined $self->{cert_obj}) {
             # use the provided cert to verify
-            return 0 unless $self->_verify_x509_cert($self->{cert_obj},$signed_info_canon,$signature);
-    }
-    else {
+            unless ($self->_verify_x509_cert($self->{cert_obj},$signed_info_canon,$signature)) {
+                print STDERR "not verified by x509\n";
+                return 0;
+            }
+        }
+        else {
             # extract the certficate or key from the document
             my $keyinfo_nodeset;
             if ($keyinfo_nodeset = $self->{parser}->findnodes('dsig:KeyInfo/dsig:X509Data', $signature_node)) {
                 my $keyinfo_node = $keyinfo_nodeset->shift();
-                return 0 unless $self->_verify_x509($keyinfo_node,$signed_info_canon,$signature);
+                unless ($self->_verify_x509($keyinfo_node,$signed_info_canon,$signature)) {
+                    print STDERR "not verified by x509\n";
+                    return 0;
+                }
             }
             elsif ($keyinfo_nodeset = $self->{parser}->find('dsig:KeyInfo/dsig:KeyValue/dsig:RSAKeyValue', $signature_node)) {
                 my $keyinfo_node = $keyinfo_nodeset->shift();
-                    return 0 unless $self->_verify_rsa($keyinfo_node,$signed_info_canon,$signature);
+                unless ($self->_verify_rsa($keyinfo_node,$signed_info_canon,$signature)) {
+                    print STDERR "not verified by rsa\n";
+                    return 0;
+                }
             }
             elsif ($keyinfo_nodeset = $self->{parser}->find('dsig:KeyInfo/dsig:KeyValue/dsig:DSAKeyValue', $signature_node)) {
                 my $keyinfo_node = $keyinfo_nodeset->shift();
-                    return 0 unless $self->_verify_dsa($keyinfo_node,$signed_info_canon,$signature);
+                unless ($self->_verify_dsa($keyinfo_node,$signed_info_canon,$signature)) {
+                    print STDERR "not verified by dsa\n";
+                    return 0;
+                }
             }
             else {
-                    die "Unrecognized key type or no KeyInfo in document";
+                die "Unrecognized key type or no KeyInfo in document";
             }
-    }
+        }
 
-    my $digest_method = $self->{parser}->findvalue('dsig:Reference/dsig:DigestMethod/@Algorithm', $signed_info_node);
-    my $digest = _trim($self->{parser}->findvalue('dsig:Reference/dsig:DigestValue', $signed_info_node));
+        my $digest_method = $self->{parser}->findvalue('dsig:Reference/dsig:DigestMethod/@Algorithm', $signed_info_node);
+        my $refdigest     = _trim($self->{parser}->findvalue('dsig:Reference/dsig:DigestValue', $signed_info_node));
     
-    my $signed_xml    = $self->_get_signed_xml( $signature_node );
+        my $signed_xml    = $self->_get_signed_xml( $signature_node );
+        my $canonical     = $self->_transform( $signed_xml, $signature_node );
+        my $digest        = encode_base64(_trim(sha1( $canonical )), '');
 
-    my $canonical     = $self->_transform( $signed_xml, $signature_node );
-
-    my $digest_bin    = sha1( $canonical ); 
-
-    return 1 if ($digest eq _trim(encode_base64($digest_bin)));
-    return 0;
+        return 0 unless ($digest eq $refdigest);
+    }
+    
+    return 1;
 }
 
 sub signer_cert {
@@ -358,7 +372,9 @@ sub _transform_env_sig {
     }
     # This removes the first Signature tag from the XML - even if there is another XML tree with another Signature inside and that comes first.
     # TODO: Remove the outermost Signature only.
+
     $str =~ s/(<${prefix}Signature(.*?)>(.*?)\<\/${prefix}Signature>)//is;
+
     return $str;
 }
 
