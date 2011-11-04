@@ -16,7 +16,8 @@ Net::SAML2::Protocol::AuthnRequest - SAML2 AuthnRequest object
     issueinstant => DateTime->now,
     issuer       => $self->{id},
     destination  => $destination,
-    nameid_format => 'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent', # or 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient'
+    nameid_format => 'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent', # or 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient',
+    forceAuthn   => 1,
   );
 
 =head1 METHODS
@@ -38,6 +39,7 @@ has 'issuer'        => (isa => Uri, is => 'ro', required => 1, coerce => 1);
 has 'destination'   => (isa => Uri, is => 'ro', required => 1, coerce => 1);
 has 'nameid_format' => (isa => NonEmptySimpleStr, is => 'ro', required => 1, default => 'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent');
 has 'providername'  => (is => 'rw', required => 0, default => 'ProviderName');
+has 'forceAuthn'    => (is => 'rw', required => 0, default => 0);
 
 =head2 as_xml()
 
@@ -55,15 +57,12 @@ sub as_xml {
     $x->xml(
         $x->AuthnRequest(
             $samlp,
-            { Destination => $self->destination,
-              ID => $self->id,
-              IssueInstant => $self->issue_instant,
+            { Destination => $self->destination(),
+              ID => $self->id(),
+              IssueInstant => $self->issue_instant(),
               ProviderName => $self->providername(),
               Version => '2.0',
-#             AssertionConsumerServiceURL => 'http://localhost/saml/consumer_post',
-#             IsPassive => 'false',
-#             ProtocolBinding => 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST',
-#             ForceAuthn => "true",
+              ForceAuthn => $self->forceAuthn(),
             },
             $x->Issuer(
                 $saml,
@@ -72,7 +71,7 @@ sub as_xml {
             $x->NameIDPolicy(
                 $samlp,
                 { AllowCreate => '1',
-                  Format => $self->nameid_format },
+                  Format => $self->nameid_format() },
             ),
         )
     );
