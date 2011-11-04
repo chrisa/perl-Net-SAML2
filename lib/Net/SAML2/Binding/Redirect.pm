@@ -13,6 +13,7 @@ Net::SAML2::Binding::Redirect
     key => 'sign-nopw-cert.pem',
     url => $sso_url,
     param => 'SAMLRequest',
+    cert => 'path/to/cert.ca',
   );
 
   my $url = $redirect->sign($authnreq);

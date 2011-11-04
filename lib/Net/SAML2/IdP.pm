@@ -33,7 +33,7 @@ Constructor
 has 'entityid'       => (isa => Str, is => 'ro', required => 1);
 has 'cacert'         => (isa => Str, is => 'ro', required => 1);
 has 'sso_urls'       => (isa => HashRef[Str], is => 'ro', required => 1);
-has 'slo_urls'       => (isa => HashRef[Str], is => 'ro', required => 1);
+has 'slo_urls'       => (isa => 'HashRef[Str]|Undef', is => 'ro', required => 0);
 has 'art_urls'       => (isa => HashRef[Str], is => 'ro', required => 1);
 has 'certs'          => (isa => HashRef[Str], is => 'ro', required => 1);
 has 'formats'        => (isa => HashRef[Str], is => 'ro', required => 1);
@@ -101,7 +101,7 @@ sub new_from_xml {
     }
 
     for my $key ($xpath->findnodes('//md:EntityDescriptor/md:IDPSSODescriptor/md:KeyDescriptor')) {
-        my $use = $key->getAttribute('use');
+        my $use = $key->getAttribute('use') || 'signing';
         my ($text) = $key->findvalue('ds:KeyInfo/ds:X509Data/ds:X509Certificate') =~ /^\s*(.+?)\s*$/s;
 
         # rewrap the base64 data from the metadata; it may not

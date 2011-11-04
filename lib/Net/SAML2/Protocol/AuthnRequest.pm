@@ -16,6 +16,8 @@ Net::SAML2::Protocol::AuthnRequest - SAML2 AuthnRequest object
     issueinstant => DateTime->now,
     issuer       => $self->{id},
     destination  => $destination,
+    nameid_format => 'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent', # or 'urn:oasis:names:tc:SAML:2.0:nameid-format:transient',
+    forceAuthn   => 1,
   );
 
 =head1 METHODS
@@ -35,7 +37,9 @@ Arguments:
 
 has 'issuer'        => (isa => Uri, is => 'ro', required => 1, coerce => 1);
 has 'destination'   => (isa => Uri, is => 'ro', required => 1, coerce => 1);
-has 'nameid_format' => (isa => NonEmptySimpleStr, is => 'ro', required => 1);
+has 'nameid_format' => (isa => NonEmptySimpleStr, is => 'ro', required => 1, default => 'urn:oasis:names:tc:SAML:2.0:nameid-format:persistent');
+has 'providername'  => (is => 'rw', required => 0, default => 'ProviderName');
+has 'forceAuthn'    => (is => 'rw', required => 0, default => 0);
 
 =head2 as_xml()
 
@@ -53,11 +57,13 @@ sub as_xml {
     $x->xml(
         $x->AuthnRequest(
             $samlp,
-            { Destination => $self->destination,
-              ID => $self->id,
-              IssueInstant => $self->issue_instant,
-              ProviderName => "My SP's human readable name.",
-              Version => '2.0' },
+            { Destination => $self->destination(),
+              ID => $self->id(),
+              IssueInstant => $self->issue_instant(),
+              ProviderName => $self->providername(),
+              Version => '2.0',
+              ForceAuthn => $self->forceAuthn(),
+            },
             $x->Issuer(
                 $saml,
                 $self->issuer,
@@ -65,10 +71,10 @@ sub as_xml {
             $x->NameIDPolicy(
                 $samlp,
                 { AllowCreate => '1',
-                  Format => $self->nameid_format },
-            )
+                  Format => $self->nameid_format() },
+            ),
         )
     );
 }
 
-__PACKAGE__->meta->make_immutable;
+1;
