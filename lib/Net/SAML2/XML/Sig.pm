@@ -114,6 +114,7 @@ sub verify {
 
     $self->{ parser } = XML::XPath->new( xml => $xml );
     $self->{ parser }->set_namespace('dsig', 'http://www.w3.org/2000/09/xmldsig#');
+    $self->{ parser }->set_namespace('ec', 'http://www.w3.org/2001/10/xml-exc-c14n#');
 
     my $signature = _trim($self->{parser}->findvalue('//dsig:Signature/dsig:SignatureValue'));
     my $signed_info_node = $self->_get_node('//dsig:Signature/dsig:SignedInfo');
