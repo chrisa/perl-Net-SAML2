@@ -225,6 +225,19 @@ sub _verify_rsa {
 sub _clean_x509 {
     my $self = shift;
     my ($cert) = @_;
+
+    # rewrap the base64 data from the certificate; it may not be
+    # wrapped at 64 characters as PEM requires
+    $cert =~ s/\n//g;
+    
+    my @lines;
+    while (length $cert > 64) {
+            push @lines, substr $cert, 0, 64, '';
+        }
+    push @lines, $cert;
+    
+    $cert = join "\n", @lines;
+
     $cert = "-----BEGIN CERTIFICATE-----\n" . $cert . "\n-----END CERTIFICATE-----\n";
     return $cert;
 }
@@ -243,7 +256,7 @@ sub _verify_x509 {
 
     # This is added because the X509 parser requires it for self-identification
     $certificate = $self->_clean_x509($certificate);
-        
+
     my $cert = Crypt::OpenSSL::X509->new_from_string($certificate);
     return $self->_verify_x509_cert($cert, $canonical, $sig);
 }
