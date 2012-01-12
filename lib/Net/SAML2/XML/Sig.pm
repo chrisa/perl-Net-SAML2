@@ -161,8 +161,8 @@ sub verify {
     my $digest = _trim($self->{parser}->findvalue('//dsig:Signature/dsig:SignedInfo/dsig:Reference/dsig:DigestValue'));
     
     my $signed_xml    = $self->_get_signed_xml();
-    my $canonical     = $self->_transform( $signed_xml );
-    my $digest_bin    = sha1( $canonical ); 
+    my $canonical     = $self->_transform($signed_xml, $signature_node);
+    my $digest_bin    = sha1($canonical);
 
     return 1 if ($digest eq _trim(encode_base64($digest_bin)));
     return 0;
