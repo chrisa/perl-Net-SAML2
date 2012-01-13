@@ -34,3 +34,8 @@ Revision history for Perl extension Net::SAML2.
 0.16     Tue 01 Mar 2011 09:40:13 GMT
 
       Use the IdP's advertised NameID formats.
+
+0.17     Fri 13 Jan 2012 13:41:23 GMT
+
+      Handle the InclusiveNamespaces element in XML Signature
+      Handle embedded certificate data presented without newlines.
