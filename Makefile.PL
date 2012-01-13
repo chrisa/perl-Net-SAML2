@@ -41,6 +41,7 @@ author_requires 'Test::Pod::Coverage' => '1.04';
 test_requires 'Test::More' => '0.88';
 test_requires 'Dancer' => '1.2000';
 test_requires 'WWW::Mechanize' => '1.66';
+test_requires 'YAML';
 
 resources
      license     => "http://dev.perl.org/licenses",
