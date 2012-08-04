@@ -239,9 +239,8 @@ sub format {
     elsif ($self->default_format) {
         return $self->formats->{$self->default_format};
     }
-    else {
-        return;
-    }
+
+    return;
 }
 
 __PACKAGE__->meta->make_immutable;
