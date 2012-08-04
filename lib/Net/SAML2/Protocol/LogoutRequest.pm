@@ -26,11 +26,29 @@ Constructor. Returns an instance of the LogoutRequest object.
 
 Arguments:
 
- * session - the session to log out
- * nameid - the NameID of the user to log out
- * nameid_format - the NameIDFormat to specify
- * issuer - the SP's identity URI
- * destination -  the IdP's identity URI
+=over
+
+=item B<session>
+
+session to log out
+
+=item B<nameid>
+
+NameID of the user to log out
+
+=item B<nameid_format>
+
+NameIDFormat to specify
+
+=item B<issuer>
+
+SP's identity URI
+
+=item B<destination>
+
+IdP's identity URI
+
+=back
 
 =cut
 
@@ -40,9 +58,19 @@ has 'nameid_format' => (isa => NonEmptySimpleStr, is => 'ro', required => 1);
 has 'issuer'        => (isa => Uri, is => 'ro', required => 1, coerce => 1);
 has 'destination'   => (isa => Uri, is => 'ro', required => 1, coerce => 1);
 
-=head2 new_from_xml
+=head2 new_from_xml( ... )
 
 Create a LogoutRequest object from the given XML.
+
+Arguments:
+
+=over
+
+=item B<xml>
+
+XML data
+
+=back
 
 =cut
 
@@ -65,7 +93,7 @@ sub new_from_xml {
     return $self;
 }
 
-=head2 as_xml()
+=head2 as_xml( )
 
 Returns the LogoutRequest as XML.
 

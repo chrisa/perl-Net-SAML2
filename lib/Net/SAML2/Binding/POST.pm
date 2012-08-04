@@ -8,7 +8,9 @@ Net::SAML2::Binding::POST - HTTP POST binding for SAML2
 
 =head1 SYNOPSIS
 
-  my $post = Net::SAML2::Binding::POST->new;
+  my $post = Net::SAML2::Binding::POST->new(
+    cacert => '/path/to/ca-cert.pem'
+  );
   my $ret = $post->handle_response(
     $saml_response
   );
@@ -21,17 +23,25 @@ use Net::SAML2::XML::Sig;
 use MIME::Base64 qw/ decode_base64 /;
 use Crypt::OpenSSL::VerifyX509;
 
-=head2 new()
+=head2 new( )
 
 Constructor. Returns an instance of the POST binding. 
 
-No arguments.
+Arguments:
+
+=over
+
+=item B<cacert>
+
+path to the CA certificate for verification
+
+=back
 
 =cut
 
 has 'cacert' => (isa => Str, is => 'ro', required => 1);
 
-=head2 handle_response($response)
+=head2 handle_response( $response )
 
 Decodes and verifies the response provided, which should be the raw
 Base64-encoded response, from the SAMLResponse CGI parameter. 

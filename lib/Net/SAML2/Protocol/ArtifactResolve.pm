@@ -28,9 +28,21 @@ the given issuer and artifact.
 
 Arguments:
 
- * issuer - the issuing SP's identity URI
- * artifact - the artifact to be resolved
- * destination - the IdP's identity URI
+=over
+
+=item B<issuer>
+
+issuing SP's identity URI
+
+=item B<artifact>
+
+artifact to be resolved
+
+=item B<destination>
+
+IdP's identity URI
+
+=back
 
 =cut
 
@@ -39,7 +51,7 @@ has 'issuer'      => (isa => Uri, is => 'ro', required => 1, coerce => 1);
 has 'destination' => (isa => Uri, is => 'ro', required => 1, coerce => 1);
 
 
-=head2 as_xml
+=head2 as_xml( )
 
 Returns the ArtifactResolve request as XML.
 

@@ -22,11 +22,15 @@ use HTTP::Request::Common;
 use LWP::UserAgent;
 use XML::XPath;
 
-=head2 new
+=head2 new( )
 
 Constructor
 
- * entityID
+=over
+
+=item B<entityid>
+
+=back
 
 =cut
 
@@ -146,7 +150,7 @@ sub BUILD {
     }       
 }
 
-=head2 sso_url($binding)
+=head2 sso_url( $binding )
 
 Returns the url for the SSO service using the given binding. Binding
 name should be the full URI. 
@@ -158,7 +162,7 @@ sub sso_url {
     return $self->sso_urls->{$binding};
 }
 
-=head2 slo_url($binding)
+=head2 slo_url( $binding )
 
 Returns the url for the Single Logout Service using the given
 binding. Binding name should be the full URI.
@@ -170,7 +174,7 @@ sub slo_url {
     return $self->slo_urls->{$binding};
 }
 
-=head2 art_url($binding)
+=head2 art_url( $binding )
 
 Returns the url for the Artifact Resolution service using the given
 binding. Binding name should be the full URI.
@@ -182,9 +186,9 @@ sub art_url {
     return $self->art_urls->{$binding};
 }
 
-=head2 cert($use)
+=head2 cert( $use )
 
-Returns the IdP's certificate for the given use (e.g. 'signing').
+Returns the IdP's certificate for the given use (e.g. C<signing>).
 
 =cut
 
@@ -193,10 +197,10 @@ sub cert {
     return $self->certs->{$use};
 }
 
-=head2 binding($name)
+=head2 binding( $name )
 
-Returns the full Binding URI for the given binding name. Includes this
-module's currently-supported bindings.
+Returns the full Binding URI for the given binding name (i.e. C<redirect> or C<soap>).
+Includes this module's currently-supported bindings.
 
 =cut
 
@@ -215,7 +219,7 @@ sub binding {
     return;
 }
 
-=head2 format($short_name)
+=head2 format( $short_name )
 
 Returns the full NameID Format URI for the given short name.
 

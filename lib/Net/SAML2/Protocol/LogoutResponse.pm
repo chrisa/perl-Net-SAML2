@@ -26,10 +26,25 @@ Constructor. Returns an instance of the LogoutResponse object.
 
 Arguments:
 
- * issuer - the SP's identity URI
- * destination -  the IdP's identity URI
- * status - the response status
- * response_to - the request ID we're responding to
+=over
+
+=item B<issuer>
+
+SP's identity URI
+
+=item B<destination>
+
+IdP's identity URI
+
+=item B<status>
+
+response status
+
+=item B<response_to>
+
+request ID we're responding to
+
+=back
 
 =cut
 
@@ -38,9 +53,17 @@ has 'destination' => (isa => Uri, is => 'ro', required => 1, coerce => 1);
 has 'status'      => (isa => Str, is => 'ro', required => 1);
 has 'response_to' => (isa => Str, is => 'ro', required => 1);
 
-=head2 new_from_xml
+=head2 new_from_xml( ... )
 
 Create a LogoutResponse object from the given XML.
+
+Arguments:
+
+=over
+
+=item B<xml>
+
+XML data
 
 =cut
 
@@ -63,7 +86,7 @@ sub new_from_xml {
     return $self;
 }
 
-=head2 as_xml()
+=head2 as_xml( )
 
 Returns the LogoutResponse as XML.
 
@@ -99,7 +122,7 @@ sub as_xml {
     );
 }
 
-=head2 success
+=head2 success( )
 
 Returns true if the Response's status is Success.
 

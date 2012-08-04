@@ -38,9 +38,21 @@ around 'BUILDARGS' => sub {
 
 =head1 METHODS
 
-=head2 status_uri($status)
+=head2 status_uri( $status )
 
 Provides a mapping from short names for statuses to the full status URIs.
+
+Legal short names for B<$status> are:
+
+=over
+
+=item C<success>
+
+=item C<requester>
+
+=item C<responder>
+
+=back
 
 =cut
 
