@@ -157,10 +157,10 @@ sub verify {
             }
     }
 
-    my $digest_method = $self->{parser}->findvalue('//dsig:Signature/dsig:SignedInfo/dsig:Reference/dsig:DigestMethod/@Algorithm');
-    my $digest = _trim($self->{parser}->findvalue('//dsig:Signature/dsig:SignedInfo/dsig:Reference/dsig:DigestValue'));
-    
-    my $signed_xml    = $self->_get_signed_xml();
+    my $digest_method = $self->{parser}->findvalue('dsig:SignedInfo/dsig:Reference/dsig:DigestMethod/@Algorithm', $signature_node);
+    my $digest = _trim($self->{parser}->findvalue('dsig:SignedInfo/dsig:Reference/dsig:DigestValue', $signature_node));
+
+    my $signed_xml    = $self->_get_signed_xml($signature_node);
     my $canonical     = $self->_transform($signed_xml, $signature_node);
     my $digest_bin    = sha1($canonical);
 
@@ -184,7 +184,9 @@ sub _get_xml_to_sign {
 
 sub _get_signed_xml {
     my $self = shift;
-    my $id = $self->{parser}->findvalue('//dsig:Signature/dsig:SignedInfo/dsig:Reference/@URI');
+    my $context = shift;
+
+    my $id = $self->{parser}->findvalue('dsig:SignedInfo/dsig:Reference/@URI', $context);
     $id =~ s/^#//;
     $self->{'sign_id'} = $id;
     my $xpath = "//*[\@ID='$id']";
@@ -355,7 +357,7 @@ sub _transform_env_sig {
     if (defined $self->{dsig_prefix} && length $self->{dsig_prefix}) {
         $prefix = $self->{dsig_prefix} . ':';
     }
-    $str =~ s/(<${prefix}Signature(.*?)>(.*?)\<\/${prefix}Signature>)//igs;
+    $str =~ s/(<${prefix}Signature(.*?)>(.*?)\<\/${prefix}Signature>)//is;
     return $str;
 }
 
