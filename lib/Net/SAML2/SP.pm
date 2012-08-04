@@ -13,6 +13,7 @@ Net::SAML2::SP - SAML Service Provider object
     id   => 'http://localhost:3000',
     url  => 'http://localhost:3000',
     cert => 'sign-nopw-cert.pem',
+    key => 'sign-nopw-key.pem',
   );
 
 =head1 METHODS
@@ -42,6 +43,10 @@ SP's identity URI.
 
 path to the signing certificate
 
+=item B<key>
+
+path to the private key for the signing certificate
+
 =item B<cacert>
 
 path to the CA certificate for verification
@@ -65,6 +70,7 @@ SP contact email address
 has 'url'    => (isa => Uri, is => 'ro', required => 1, coerce => 1);
 has 'id'     => (isa => Str, is => 'ro', required => 1);
 has 'cert'   => (isa => Str, is => 'ro', required => 1);
+has 'key'    => (isa => Str, is => 'ro', required => 1);
 has 'cacert' => (isa => Str, is => 'ro', required => 1);
 
 has 'org_name'         => (isa => Str, is => 'ro', required => 1);
@@ -186,7 +192,7 @@ sub sso_redirect_binding {
     my $redirect = Net::SAML2::Binding::Redirect->new(
         url   => $idp->sso_url('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'),
         cert  => $idp->cert('signing'),
-        key   => $self->cert,
+        key   => $self->key,
         param => $param,
     );
         
@@ -207,7 +213,7 @@ sub slo_redirect_binding {
     my $redirect = Net::SAML2::Binding::Redirect->new(
         url   => $idp->slo_url('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'),
         cert  => $idp->cert('signing'),
-        key   => $self->cert,
+        key   => $self->key,
         param => $param,
     );
         
@@ -228,7 +234,7 @@ sub soap_binding {
 
     my $soap = Net::SAML2::Binding::SOAP->new(
         ua       => $ua,
-        key      => $self->cert,
+        key      => $self->key,
         cert     => $self->cert,
         url      => $idp_url,
         idp_cert => $idp_cert,

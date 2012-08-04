@@ -64,6 +64,7 @@ my $sp = Net::SAML2::SP->new(
         id               => 'http://localhost:3000',
         url              => 'http://localhost:3000',
         cert             => 't/sign-nopw-cert.pem',
+        key              => 't/sign-nopw-cert.pem',
         cacert           => 't/cacert.pem',
         org_name         => 'Test',
         org_display_name => 'Test',

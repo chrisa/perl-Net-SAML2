@@ -153,6 +153,7 @@ sub _sp {
         id     => 'http://localhost:3000',
         url    => 'http://localhost:3000',
         cert   => 'sign-nopw-cert.pem',
+        key    => 'sign-nopw-cert.pem',
         cacert => 'saml_cacert.pem',
 		
         org_name	 => 'Saml2Test',
