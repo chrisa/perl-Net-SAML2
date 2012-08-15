@@ -17,7 +17,7 @@ use base qw/Exporter/;
 
 use strict;
 
-use Digest::SHA1 qw(sha1 sha1_base64);
+use Digest::SHA qw(sha1 sha1_base64);
 use XML::XPath;
 use MIME::Base64;
 use Carp;
@@ -749,7 +749,7 @@ Now, let's insert a signature:
 
 =over
 
-=item L<Digest::SHA1>
+=item L<Digest::SHA>
 
 =item L<XML::XPath>
 
