@@ -13,6 +13,7 @@ Net::SAML2::SP - SAML Service Provider object
     id   => 'http://localhost:3000',
     url  => 'http://localhost:3000',
     cert => 'sign-nopw-cert.pem',
+    key => 'sign-nopw-key.pem',
   );
 
 =head1 METHODS
@@ -28,20 +29,48 @@ Constructor. Create an SP object.
 
 Arguments:
 
- * url    - the base for all SP service URLs
- * id     - the SP's identity URI. 
- * cert   - path to the signing certificate
- * cacert - path to the CA certificate for verification
+=over
 
- * org_name         - the SP organisation name
- * org_display_name - the SP organisation display name
- * org_contact      - an SP contact email address
+=item B<url>
+
+base for all SP service URLs
+
+=item B<id>
+
+SP's identity URI. 
+
+=item B<cert>
+
+path to the signing certificate
+
+=item B<key>
+
+path to the private key for the signing certificate
+
+=item B<cacert>
+
+path to the CA certificate for verification
+
+=item B<org_name>
+
+SP organisation name
+
+=item B<org_display_name>
+
+SP organisation display name
+
+=item B<org_contact>
+
+SP contact email address
+
+=back
 
 =cut
 
 has 'url'    => (isa => Uri, is => 'ro', required => 1, coerce => 1);
 has 'id'     => (isa => Str, is => 'ro', required => 1);
 has 'cert'   => (isa => Str, is => 'ro', required => 1);
+has 'key'    => (isa => Str, is => 'ro', required => 1);
 has 'cacert' => (isa => Str, is => 'ro', required => 1);
 
 has 'org_name'         => (isa => Str, is => 'ro', required => 1);
@@ -61,7 +90,7 @@ sub BUILD {
     return $self;
 }
 
-=head2 authn_request($destination)
+=head2 authn_request( $destination, $nameid_format )
 
 Returns an AuthnRequest object created by this SP, intended for the
 given destination, which should be the identity URI of the IdP.
@@ -81,7 +110,7 @@ sub authn_request {
     return $authnreq;
 }
 
-=head2 logout_request($destination, $nameid, $nameid_format, $session)
+=head2 logout_request( $destination, $nameid, $nameid_format, $session )
 
 Returns a LogoutRequest object created by this SP, intended for the
 given destination, which should be the identity URI of the IdP.
@@ -104,7 +133,7 @@ sub logout_request {
     return $logout_req;
 }
 
-=head2 logout_response($destination, $status, $response_to)
+=head2 logout_response( $destination, $status, $response_to )
 
 Returns a LogoutResponse object created by this SP, intended for the
 given destination, which should be the identity URI of the IdP.
@@ -128,7 +157,7 @@ sub logout_response {
     return $logout_req;
 }
 
-=head2 artifact_request($destination, $artifact)
+=head2 artifact_request( $destination, $artifact )
 
 Returns an ArtifactResolve request object created by this SP, intended
 for the given destination, which should be the identity URI of the
@@ -149,11 +178,11 @@ sub artifact_request {
     return $artifact_request;
 }
 
-=head2 sso_redirect_binding($idp, $param)
+=head2 sso_redirect_binding( $idp, $param )
 
 Returns a Redirect binding object for this SP, configured against the
 given IDP for Single Sign On. $param specifies the name of the query
-parameter involved - typically SAMLRequest.
+parameter involved - typically C<SAMLRequest>.
 
 =cut
 
@@ -163,18 +192,18 @@ sub sso_redirect_binding {
     my $redirect = Net::SAML2::Binding::Redirect->new(
         url   => $idp->sso_url('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'),
         cert  => $idp->cert('signing'),
-        key   => $self->cert,
+        key   => $self->key,
         param => $param,
     );
         
     return $redirect;
 }
 
-=head2 slo_redirect_binding
+=head2 slo_redirect_binding( $idp, $param )
 
 Returns a Redirect binding object for this SP, configured against the
 given IDP for Single Log Out. $param specifies the name of the query
-parameter involved - typically SAMLRequest or SAMLResponse.
+parameter involved - typically C<SAMLRequest> or C<SAMLResponse>.
 
 =cut
 
@@ -184,14 +213,14 @@ sub slo_redirect_binding {
     my $redirect = Net::SAML2::Binding::Redirect->new(
         url   => $idp->slo_url('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'),
         cert  => $idp->cert('signing'),
-        key   => $self->cert,
+        key   => $self->key,
         param => $param,
     );
         
     return $redirect;
 }
 
-=head2 soap_binding
+=head2 soap_binding( $ua, $idp_url, $idp_cert )
 
 Returns a SOAP binding object for this SP, with a destination of the
 given URL and signing certificate.
@@ -205,7 +234,7 @@ sub soap_binding {
 
     my $soap = Net::SAML2::Binding::SOAP->new(
         ua       => $ua,
-        key      => $self->cert,
+        key      => $self->key,
         cert     => $self->cert,
         url      => $idp_url,
         idp_cert => $idp_cert,
@@ -215,7 +244,7 @@ sub soap_binding {
     return $soap;
 }
 
-=head2 post_binding
+=head2 post_binding( )
 
 Returns a POST binding object for this SP.
 
@@ -231,7 +260,7 @@ sub post_binding {
     return $post;
 }
 
-=head2 metadata
+=head2 metadata( )
 
 Returns the metadata XML document for this SP.
 

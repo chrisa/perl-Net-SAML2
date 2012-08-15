@@ -36,6 +36,16 @@ has 'audience'   => (isa => NonEmptySimpleStr, is => 'ro', required => 1);
 Constructor. Creates an instance of the Assertion object, parsing the
 given XML to find the attributes, session and nameid. 
 
+Arguments:
+
+=over
+
+=item B<xml>
+
+XML data
+
+=back
+
 =cut
 
 sub new_from_xml { 
@@ -71,7 +81,7 @@ sub new_from_xml {
     return $self;
 }
 
-=head2 name
+=head2 name( )
 
 Returns the CN attribute, if provided.
 

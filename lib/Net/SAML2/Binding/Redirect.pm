@@ -13,6 +13,7 @@ Net::SAML2::Binding::Redirect
     key => 'sign-nopw-cert.pem',
     url => $sso_url,
     param => 'SAMLRequest',
+    cacert => '/path/to/cac-cert.pem'
   );
 
   my $url = $redirect->sign($authnreq);
@@ -45,10 +46,25 @@ Constructor. Creates an instance of the Redirect binding.
 
 Arguments:
 
- * key - the signing key (for creating Redirect URLs)
- * cert - the IdP's signing cert (for verifying Redirect URLs)
- * url - the IdP's SSO service url for the Redirect binding
- * param - the query param name to use (SAMLRequest, SAMLResponse)
+=over
+
+=item B<key>
+
+signing key (for creating Redirect URLs)
+
+=item B<cert>
+
+IdP's signing cert (for verifying Redirect URLs)
+
+=item B<url>
+
+IdP's SSO service url for the Redirect binding
+
+=item B<param>
+
+query param name to use (SAMLRequest, SAMLResponse)
+
+=back
 
 =cut
 
@@ -57,7 +73,7 @@ has 'cert'  => (isa => Str, is => 'ro', required => 1);
 has 'url'   => (isa => Uri, is => 'ro', required => 1, coerce => 1);
 has 'param' => (isa => Str, is => 'ro', required => 1);
 
-=head2 sign($request, $relaystate)
+=head2 sign( $request, $relaystate )
 
 Signs the given request, and returns the URL to which the user's
 browser should be redirected.
@@ -93,7 +109,7 @@ sub sign {
     return $url;
 }
 
-=head2 verify($url)
+=head2 verify( $url )
 
 Decode a Redirect binding URL. 
 

@@ -29,7 +29,7 @@ requires 'MooseX::Types::DateTime';
 
 # XML::Sig's deps
 requires 'Class::Accessor';
-requires 'Digest::SHA1';
+requires 'Digest::SHA';
 requires 'Crypt::OpenSSL::Bignum';
 requires 'Crypt::OpenSSL::DSA';
 requires 'XML::CanonicalizeXML';

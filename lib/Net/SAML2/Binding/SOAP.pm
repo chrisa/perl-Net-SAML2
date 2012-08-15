@@ -34,12 +34,33 @@ the given IdP service url.
 
 Arguments:
 
- * ua - (optionally) a LWP::UserAgent-compatible UA
- * url - the service URL
- * key - the key to sign with
- * cert - the corresponding certificate
- * idp_cert - the idp's signing certificate
- * cacert - the CA for the SAML CoT
+=over
+
+=item B<ua>
+
+(optional) a LWP::UserAgent-compatible UA
+
+=item B<url>
+
+the service URL
+
+=item B<key>
+
+the key to sign with
+
+=item B<cert>
+
+the corresponding certificate
+
+=item B<idp_cert>
+
+the idp's signing certificate
+
+=item B<cacert>
+
+the CA for the SAML CoT
+
+=back
 
 =cut
 
@@ -52,7 +73,7 @@ has 'cert'     => (isa => Str, is => 'ro', required => 1);
 has 'idp_cert' => (isa => Str, is => 'ro', required => 1);
 has 'cacert'   => (isa => Str, is => 'ro', required => 1);
 
-=head2 request($message)
+=head2 request( $message )
 
 Submit the message to the IdP's service.
 
@@ -145,7 +166,7 @@ sub handle_request {
     return;
 }
 
-=head2 create_soap_envelope($message)
+=head2 create_soap_envelope( $message )
 
 Signs and SOAP-wraps the given message.
 

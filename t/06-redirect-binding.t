@@ -10,6 +10,7 @@ use LWP::UserAgent;
 my $sp = Net::SAML2::SP->new(
         id               => 'http://localhost:3000',
         url              => 'http://localhost:3000',
+        key              => 't/sign-nopw-cert.pem',
         cert             => 't/sign-nopw-cert.pem',
         cacert           => 't/cacert.pem',
         org_name         => 'Test',
