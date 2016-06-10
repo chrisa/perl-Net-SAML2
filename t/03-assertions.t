@@ -39,6 +39,7 @@ my $xml = <<XML;
     <saml:Conditions NotBefore="2010-10-12T14:39:27Z" NotOnOrAfter="2010-10-12T14:59:27Z">
       <saml:AudienceRestriction>
         <saml:Audience>http://ct.local</saml:Audience>
+        <saml:Audience>http://ct2.local</saml:Audience>
       </saml:AudienceRestriction>
     </saml:Conditions>
     <saml:AuthnStatement AuthnInstant="2010-10-12T12:58:34Z" SessionIndex="s2b087bdce06dbbf9cd4662af82b8b853d4d285c01">
@@ -79,7 +80,8 @@ is($assertion->attributes->{Phone2}->[2], '345678');
 
 isa_ok($assertion->not_before, 'DateTime');
 isa_ok($assertion->not_after,  'DateTime');
-is($assertion->audience, 'http://ct.local');
+is($assertion->audience->{'http://ct.local'}, 1);
+is($assertion->audience->{'http://ct2.local'}, 1);
 is($assertion->valid('foo'), 0);
 is($assertion->valid('http://ct.local'), 0);
 
@@ -87,8 +89,10 @@ is($assertion->valid('http://ct.local'), 0);
 $assertion->{not_before} = DateTime->now;
 $assertion->{not_after} = DateTime->now->add( minutes => 15);
 is($assertion->valid('http://ct.local'), 1);
+is($assertion->valid('http://ct2.local'), 1);
 
 $assertion->{not_before} = DateTime->now->add( minutes => 5 );
 is($assertion->valid('http://ct.local'), 0);
+is($assertion->valid('http://ct2.local'), 0);
 
 done_testing;
