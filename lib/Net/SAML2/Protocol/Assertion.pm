@@ -25,7 +25,7 @@ has 'session'    => (isa => Str, is => 'ro', required => 1);
 has 'nameid'     => (isa => Str, is => 'ro', required => 1);
 has 'not_before' => (isa => DateTime, is => 'ro', required => 1);
 has 'not_after'  => (isa => DateTime, is => 'ro', required => 1);
-has 'audience'   => (isa => NonEmptySimpleStr, is => 'ro', required => 1);
+has 'audience'   => (isa => HashRef[NonEmptySimpleStr], is => 'ro', required => 1);
 
 =head1 METHODS
 
@@ -51,7 +51,13 @@ sub new_from_xml {
             map { $_->string_value } @values
         ];
     }
-        
+
+    my %audiences = ();
+    for my $audience_restriction ($xpath->findnodes('//saml:Conditions/saml:AudienceRestriction')) {
+        my @values = $audience_restriction->findnodes('saml:Audience');
+        %audiences = map { $_->string_value => 1 } @values;
+    }
+
     my $not_before = DateTime::Format::XSD->parse_datetime(
         $xpath->findvalue('//saml:Conditions/@NotBefore')->value
     );
@@ -63,7 +69,7 @@ sub new_from_xml {
         attributes     => $attributes,
         session        => $xpath->findvalue('//saml:AuthnStatement/@SessionIndex')->value,
         nameid         => $xpath->findvalue('//saml:Subject/saml:NameID')->value,
-        audience       => $xpath->findvalue('//saml:Conditions/saml:AudienceRestriction/saml:Audience')->value,
+        audience       => \%audiences,
         not_before     => $not_before,
         not_after      => $not_after,
     );
@@ -95,7 +101,7 @@ sub valid {
     my ($self, $audience) = @_;
 
     return 0 unless defined $audience;
-    return 0 unless ($audience eq $self->audience);
+    return 0 unless ($self->audience->{$audience});
 
     my $now = DateTime::->now;
         
