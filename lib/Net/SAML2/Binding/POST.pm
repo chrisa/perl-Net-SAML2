@@ -43,7 +43,7 @@ sub handle_response {
 
     # unpack and check the signature
     my $xml = decode_base64($response);
-    my $x = Net::SAML2::XML::Sig->new({ x509 => 1 });
+    my $x = Net::SAML2::XML::Sig->new({ x509 => 1, cert => $self->cacert });
     my $ret = $x->verify($xml);
     die "signature check failed" unless $ret;
 
