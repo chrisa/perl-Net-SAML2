@@ -17,7 +17,7 @@ use base qw/Exporter/;
 
 use strict;
 
-use Digest::SHA1 qw(sha1 sha1_base64);
+use Digest::SHA qw(sha1 sha256);
 use XML::XPath;
 use MIME::Base64;
 use Carp;
@@ -136,9 +136,24 @@ sub verify {
     my $signed_info = XML::XPath::XMLParser::as_string($signed_info_node);
     my $signed_info_canon = $self->_canonicalize_xml( $signed_info );
 
+    my $sigalg = $self->{parser}->findvalue('//dsig:Signature/dsig:SignedInfo/dsig:SignatureMethod/@Algorithm');
+    my $digest_method = $self->{parser}->findvalue('//dsig:Signature/dsig:SignedInfo/dsig:Reference/dsig:DigestMethod/@Algorithm');
+    my $digest = _trim($self->{parser}->findvalue('//dsig:Signature/dsig:SignedInfo/dsig:Reference/dsig:DigestValue'));
+    
+    my $signed_xml    = $self->_get_signed_xml();
+    my $canonical     = $self->_transform($signed_xml, $signature_node);
+    my $digest_bin;
+    if ($digest_method eq 'http://www.w3.org/2000/09/xmldsig#sha1') {
+            $digest_bin = sha1($canonical);
+    } elsif ($digest_method eq 'http://www.w3.org/2001/04/xmlenc#sha256') {
+            $digest_bin = sha256($canonical);
+    }
+
+    return 0 unless ($digest eq _trim(encode_base64($digest_bin)));
+
     if (defined $self->{cert_obj}) {
             # use the provided cert to verify
-            return 0 unless $self->_verify_x509_cert($self->{cert_obj},$signed_info_canon,$signature);
+            return 0 unless $self->_verify_x509_cert($self->{cert_obj},$signed_info_canon,$signature,$sigalg);
     }
     else {
             # extract the certficate or key from the document
@@ -157,15 +172,7 @@ sub verify {
             }
     }
 
-    my $digest_method = $self->{parser}->findvalue('//dsig:Signature/dsig:SignedInfo/dsig:Reference/dsig:DigestMethod/@Algorithm');
-    my $digest = _trim($self->{parser}->findvalue('//dsig:Signature/dsig:SignedInfo/dsig:Reference/dsig:DigestValue'));
-    
-    my $signed_xml    = $self->_get_signed_xml();
-    my $canonical     = $self->_transform($signed_xml, $signature_node);
-    my $digest_bin    = sha1($canonical);
-
-    return 1 if ($digest eq _trim(encode_base64($digest_bin)));
-    return 0;
+    return 1;
 }
 
 sub signer_cert {
@@ -288,12 +295,16 @@ sub _verify_x509 {
 
 sub _verify_x509_cert {
     my $self = shift;
-    my ($cert, $canonical, $sig) = @_;
+    my ($cert, $canonical, $sig, $sigalg) = @_;
 
     eval {
         require Crypt::OpenSSL::RSA;
     };
     my $rsa_pub = Crypt::OpenSSL::RSA->new_public_key($cert->pubkey);
+
+    if ($sigalg eq 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256') {
+        $rsa_pub->use_sha256_hash();
+    }
 
     # Decode signature and verify
     my $bin_signature = decode_base64($sig);

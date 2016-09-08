@@ -106,13 +106,16 @@ sub verify {
     my $u = URI->new($url);
         
     # verify the response
-    my $sigalg = $u->query_param('SigAlg');
-    die "can't verify '$sigalg' signatures"
-         unless $sigalg eq 'http://www.w3.org/2000/09/xmldsig#rsa-sha1';
-
     my $cert = Crypt::OpenSSL::X509->new_from_string($self->cert);
     my $rsa_pub = Crypt::OpenSSL::RSA->new_public_key($cert->pubkey);
-        
+
+    my $sigalg = $u->query_param('SigAlg');
+    if ($sigalg eq 'http://www.w3.org/2001/04/xmldsig-more#rsa-sha256') {
+        $rsa_pub->use_sha256_hash();
+    } else {
+        die "can't verify '$sigalg' signatures"
+            unless $sigalg eq 'http://www.w3.org/2000/09/xmldsig#rsa-sha1';
+    }
     my $sig = decode_base64($u->query_param_delete('Signature'));
     my $signed = $u->query;
     die "bad sig" unless $rsa_pub->verify($signed, $sig);

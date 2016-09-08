@@ -33,8 +33,8 @@ Constructor
 has 'entityid'       => (isa => Str, is => 'ro', required => 1);
 has 'cacert'         => (isa => Str, is => 'ro', required => 1);
 has 'sso_urls'       => (isa => HashRef[Str], is => 'ro', required => 1);
-has 'slo_urls'       => (isa => HashRef[Str], is => 'ro', required => 1);
-has 'art_urls'       => (isa => HashRef[Str], is => 'ro', required => 1);
+has 'slo_urls'       => (isa => HashRef[Str], is => 'ro');
+has 'art_urls'       => (isa => HashRef[Str], is => 'ro');
 has 'certs'          => (isa => HashRef[Str], is => 'ro', required => 1);
 has 'formats'        => (isa => HashRef[Str], is => 'ro', required => 1);
 has 'default_format' => (isa => Str, is => 'ro', required => 1);
@@ -123,8 +123,8 @@ sub new_from_xml {
     my $self = $class->new(
         entityid       => $xpath->findvalue('//md:EntityDescriptor/@entityID')->value,
         sso_urls       => $data->{SSO},
-        slo_urls       => $data->{SLO},
-        art_urls       => $data->{Art},
+        (defined $data->{SLO} ? (slo_urls => $data->{SLO}) : () ),
+        (defined $data->{Art} ? (art_urls => $data->{Art}) : () ),
         certs          => $data->{Cert},
         formats        => $data->{NameIDFormat},
         default_format => $data->{DefaultFormat},
